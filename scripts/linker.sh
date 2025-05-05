@@ -14,6 +14,8 @@ CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 
 # create a linker lib
 echo "extern crate ${CRATE_NAME};" > /tmp/linker_lib.rs
+echo "#[no_mangle]" >> /tmp/linker_lib.rs
+echo "fn panic_impl() {}" >> /tmp/linker_lib.rs
 
 mkdir -p ${DIRECTORY}/target/objs
 
@@ -30,7 +32,7 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${RUSTC} ${RUSTEXTRA} -C panic=abort --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
+	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi

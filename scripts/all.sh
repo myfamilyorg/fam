@@ -32,7 +32,7 @@ if [ -e ${DIRECTORY}/rust ]; then
 fi
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${RUSTC} ${RUSTEXTRA} -C panic=abort --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${DIRECTORY}/rust/lib.rs"
+	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${DIRECTORY}/rust/lib.rs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi
