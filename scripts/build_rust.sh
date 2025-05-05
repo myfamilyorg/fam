@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DIRECTORY=$1
 CRATE_NAME=$2

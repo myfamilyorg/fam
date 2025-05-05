@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 TOML=${DIRECTORY}/fam.toml
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`

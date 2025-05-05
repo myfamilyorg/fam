@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Main suboptions
 ALL=0

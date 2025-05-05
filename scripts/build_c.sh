@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ "${CC}" = "" ]; then
 	echo "CC not set!";

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Input:
 # $1 - location of source project.
