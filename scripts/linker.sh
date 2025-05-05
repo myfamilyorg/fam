@@ -30,8 +30,8 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="rustc -C panic=abort --crate-name=${CRATE_NAME}_linker --crate-type=staticlib -o ${DIRECTORY}/target/objs/${CRATE_NAME}.o /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
+	COMMAND="${RUSTC} ${RUSTEXTRA} -C panic=abort --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
 	echo ${COMMAND}
-	${COMMAND}
+	${COMMAND} || exit 1;
 fi
 

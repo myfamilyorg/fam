@@ -32,12 +32,12 @@ if [ -e ${DIRECTORY}/rust ]; then
 fi
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="rustc -C panic=abort --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${DIRECTORY}/rust/lib.rs"
+	COMMAND="${RUSTC} ${RUSTEXTRA} -C panic=abort --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${DIRECTORY}/rust/lib.rs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi
 
-${FAM_BASE}/scripts/linker.sh ${DIRECTORY}
+. ${FAM_BASE}/scripts/linker.sh ${DIRECTORY}
 
 NEED_UPDATE=0
 for file in `find ${DIRECTORY}/target/objs/*.o`
@@ -49,7 +49,7 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/objs/*.o"
+	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${LINKEXTRA} ${DIRECTORY}/target/objs/*.o"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi

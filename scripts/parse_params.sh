@@ -74,6 +74,17 @@ for arg in "$@"; do
 			echo "Error: --rustextra requires a non-empty value: --rustextra=-L../famc/output-1.29.0" >&2
 			exit 1;
 		;;
+		--linkextra=*)
+			export LINKEXTRA=${arg#*=};
+			if [ -z "${LINKEXTRA}" ]; then
+				echo "Error: --linkextra requires a non-empty value: --linkextra=../famc/output-1.29.0/libcore.rlib.o" >&2
+				exit 1;
+			fi
+		;;
+                --linkextra)
+			echo "Error: --linkextra requires a non-empty value: --linkextra=../famc/output-1.29.0/libcore.rlib.o" >&2
+			exit 1;
+                ;;
 		-d=*)
 			DIRECTORY=${arg#*=};
 			if [ -z "${DIRECTORY}" ]; then
