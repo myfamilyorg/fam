@@ -49,7 +49,7 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${LINKEXTRA} ${DIRECTORY}/target/objs/*.o"
+	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${LINKEXTRA} ${DIRECTORY}/target/objs/*.o ${LINK}"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi

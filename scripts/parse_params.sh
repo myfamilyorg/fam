@@ -104,6 +104,13 @@ for arg in "$@"; do
 	COUNT=$(expr $COUNT + 1)
 done
 
+OS=$(uname -s)
+if [ "$OS" = "Linux" ]; then
+	LINK="-lm"
+elif [ "$OS" = "Darwin" ]; then
+	LINK=""
+fi
+
 if ${RUSTC} --version | grep -q "mrustc"; then
 	EMIT_STR=""
 	EXT_STR=""
