@@ -13,9 +13,17 @@ TOML=${DIRECTORY}/fam.toml
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 
 # create a linker lib
-echo "extern crate ${CRATE_NAME};" > /tmp/linker_lib.rs
-echo "#[no_mangle]" >> /tmp/linker_lib.rs
-echo "fn panic_impl() {}" >> /tmp/linker_lib.rs
+cat << EOM > /tmp/linker_lib.rs
+extern crate ${CRATE_NAME};
+pub use ${CRATE_NAME}::real_main;
+#[no_mangle]
+fn panic_impl() {}
+#[no_mangle]
+pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
+EOM
+
+echo "extern int real_main_impl(int, char **); int main(int argc, char **argv) { return real_main_impl(argc, argv); }" > /tmp/linker_main.c
+
 
 mkdir -p ${DIRECTORY}/target/objs
 
@@ -35,5 +43,8 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
+	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/objs/linker_main.o"
+	echo ${COMMAND}
+        ${COMMAND} || exit 1;
 fi
 
