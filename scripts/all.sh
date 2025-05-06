@@ -97,7 +97,13 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DIRECTORY}/target/deps/*/objs/*.o ${DIRECTORY}/target/objs/*.o ${LINK}"
+	COUNT=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps" | wc -l);
+	if [ $COUNT -ne 0 ]; then
+		DEPS_OBJS=${DIRECTORY}/target/deps/*/objs/*.o
+	else
+		DEPS_OBJS=
+	fi
+	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${DIRECTORY}/target/objs/*.o ${LINK}"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi

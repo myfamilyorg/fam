@@ -13,8 +13,21 @@ TOML=${DIRECTORY}/fam.toml
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 
 # create a linker lib
-cat << EOM > /tmp/linker_lib.rs
-extern crate crate4;
+
+DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
+
+rm /tmp/linker_lib.rs
+if [ -n "${DEP_DIRS}" ]; then
+	for DEP_DIR in ${DEP_DIRS}; do
+		CRATE_NAME_FILE="${DEP_DIR}/crate_name"
+		if [ -f "${CRATE_NAME_FILE}" ]; then
+			DEP_CRATE_NAME=$(cat "${CRATE_NAME_FILE}")
+			echo "extern crate ${DEP_CRATE_NAME};" >> /tmp/linker_lib.rs;
+		fi
+	done
+fi
+
+cat << EOM >> /tmp/linker_lib.rs
 extern crate ${CRATE_NAME};
 pub use ${CRATE_NAME}::real_main;
 #[no_mangle]
@@ -44,9 +57,6 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 
  # Initialize the extern flags for dependencies
         EXTERN_FLAGS=""
-
-        # Find all dependency directories in ${DIRECTORY}/target/deps/
-        DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
 
         # Check if there are any dependency directories
         if [ -n "${DEP_DIRS}" ]; then
