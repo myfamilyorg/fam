@@ -43,7 +43,7 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
-	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/objs/linker_main.o"
+	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"
 	echo ${COMMAND}
         ${COMMAND} || exit 1;
 fi
