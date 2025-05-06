@@ -107,7 +107,17 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	fi
 	SRC_OBJS=${DIRECTORY}/target/objs/*.o
 
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${SRC_OBJS} ${LINK}"
-	echo ${COMMAND}
+	RLIB_OBJS=
+	if [ -d "${DIRECTORY}/target/deps/rlibs" ]; then
+		OBJ_COUNT=$(find "${DIRECTORY}/target/deps/rlibs" -maxdepth 1 -type f -name "*.o" 2>/dev/null | wc -l)
+		if [ "${OBJ_COUNT}" -gt 0 ]; then
+		# Use wildcard to include all .o files
+        		RLIB_OBJS="${DIRECTORY}/target/deps/rlibs/*.o"
+    		fi
+	fi
+
+	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${RLIB_OBJS} ${SRC_OBJS} ${LINK}"
+	echo "${COMMAND}";
+	#echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi
