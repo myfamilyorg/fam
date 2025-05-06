@@ -16,7 +16,17 @@ i=1;
 while [ "$i" -le ${DEP_COUNT} ]
 do
 	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
-	DEP_PATH=${DIRECTORY}/`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+	CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+	if [[ "${CONFIG_PATH}" == /* ]]; then
+		# Absolute path: use CONFIG_PATH directly
+		DEP_PATH="${CONFIG_PATH}"
+	else
+		# Relative path: prepend DIRECTORY
+		DEP_PATH="${DIRECTORY}/${CONFIG_PATH}"
+	fi
+
+	#DEP_PATH="${DIRECTORY}/${CONFIG_PATH}";
+	echo "directory=${DIRECTORY},CONFIG_PATH=${CONFIG_PATH}"
 	${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_PATH} || exit 1;
 	i=`expr $i + 1`
 done

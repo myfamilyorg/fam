@@ -35,6 +35,19 @@ run_test() {
         	exit 1;
 	fi
 	fam clean -d=${TARGET}
+
+	PREV=`pwd`
+	cd ${TARGET}
+	fam clean
+	fam ${FAMC}
+	./target/out/${TARGET}
+	RESULT=$?;
+	if [ "${RESULT}" != "${EXPECTED}" ]; then
+		printf "${BRIGHT_RED}TEST FAILED:${RESET} '${TARGET}'. Expected: ${EXPECTED}. Found: ${RESULT}\n";
+		exit 1;
+	fi
+	fam clean
+	cd ${PREV}
 }
 
 run_test "crate1" 8

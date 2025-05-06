@@ -5,7 +5,7 @@ ALL=0
 TEST=0
 COVERAGE=0
 CLEAN=0
-DIRECTORY="."
+DIRECTORY="`pwd`"
 
 export CC=clang
 export RUSTC=rustc
