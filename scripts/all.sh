@@ -107,7 +107,6 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	SRC_OBJS=${DIRECTORY}/target/objs/*.o
 
 	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${SRC_OBJS} ${LINK}"
-	echo "final link"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi
