@@ -12,7 +12,7 @@ mkdir -p ${DIRECTORY}/target/deps
 DEST_PATH=${DIRECTORY}/target/deps
 DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`
 i=1;
-echo "DC=${DEP_COUNT},TOML=${TOML}";
+
 while [ "$i" -le ${DEP_COUNT} ]
 do
 	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`

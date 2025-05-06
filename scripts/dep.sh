@@ -12,8 +12,6 @@ if [ -z "$SCRIPT_PATH" ]; then
 fi
 FAM_BASE=$(dirname "$(dirname "$SCRIPT_PATH")")
 
-echo "dep.sh with DEST_PATH=${DEST_PATH},DEST_BASE=${DEST_BASE}"
-
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${DEST_PATH}/fam.toml`
 SHASUM=`${FAM_BASE}/scripts/shasum.sh ${DEST_PATH}/fam.toml` || exit 1;
 

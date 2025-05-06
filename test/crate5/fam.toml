@@ -1,0 +1,3 @@
+[crate]
+	bin="crate5"
+[deps]
