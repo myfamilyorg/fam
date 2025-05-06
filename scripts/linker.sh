@@ -22,7 +22,7 @@ fn panic_impl() {}
 pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
 EOM
 
-echo "/*extern int real_main_impl(int, char **); int main(int argc, char **argv) { return real_main_impl(argc, argv); }*/" > /tmp/linker_main.c
+echo "extern int real_main_impl(int, char **); int main(int argc, char **argv) { return real_main_impl(argc, argv); }" > /tmp/linker_main.c
 
 
 mkdir -p ${DIRECTORY}/target/objs
