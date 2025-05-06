@@ -6,6 +6,8 @@
 DEST_PATH=$1
 DEST_BASE=$2
 
+mkdir -p ${DEST_BASE}/rlibs
+
 SCRIPT_PATH=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null)
 if [ -z "$SCRIPT_PATH" ]; then
     SCRIPT_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
@@ -19,7 +21,19 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 	# Only execute if we haven't already completed
 	
 	# First handle deps
-	COUNT=`${FAM_BASE}/scripts/dep_count.sh ${DEST_PATH}/fam.toml`;
+	TOML=${DEST_PATH}/fam.toml
+	DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`;
+	i=1;
+
+	DEP_RLIBS="";
+	while [ $i -le ${DEP_COUNT} ]
+	do
+		DEP_PATH=${DEST_PATH}/`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`;
+		DEP_RLIBS="${DEP_RLIBS} --extern ${DEP_NAME}=${DEST_BASE}/rlibs/lib${DEP_NAME}.rlib";
+		${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_BASE} || exit 1;
+		i=`expr $i + 1`
+	done
 
 	# Now install project in our DEST_BASE
 	mkdir -p ${DEST_BASE}/${SHASUM}/c || exit 1;
@@ -49,9 +63,11 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 	done
 
 	if [ -e ${DEST_PATH}/rust/lib.rs ]; then
-		COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEST_PATH}/rust/lib.rs"
+		#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs"
+		COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.rlib ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
         	echo ${COMMAND}
         	${COMMAND} || exit 1;
+		#cp ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEST_BASE}/rlibs
 	fi
 
 	touch ${DEST_BASE}/${SHASUM}/complete;

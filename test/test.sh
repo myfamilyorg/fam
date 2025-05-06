@@ -41,5 +41,6 @@ run_test "crate1" 8
 run_test "crate2" 10
 run_test "crate3" 99
 run_test "crate5" 51
+run_test "crate6" 20
 
 printf "${GREEN}All tests succeeded!${RESET}\n";

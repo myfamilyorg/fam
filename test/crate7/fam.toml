@@ -1,0 +1,4 @@
+[crate]
+	bin="crate7"
+[deps]
+	crate8 = { path = "../crate8" }

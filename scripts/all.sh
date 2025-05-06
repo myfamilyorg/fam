@@ -17,7 +17,7 @@ while [ "$i" -le ${DEP_COUNT} ]
 do
 	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
 	DEP_PATH=${DIRECTORY}/`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-	${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_PATH}
+	${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_PATH} || exit 1;
 	i=`expr $i + 1`
 done
 
@@ -70,16 +70,12 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 				if [ -n "${DEP_RLIB}" ]; then
 					# Add --extern flag for this dependency
 					EXTERN_FLAGS="${EXTERN_FLAGS} --extern ${DEP_CRATE_NAME}=${DEP_RLIB}"
-				else
-					echo "Warning: No lib${DEP_CRATE_NAME}.rlib found in ${DEP_DIR}/objs"
 				fi
-			else
-				echo "Warning: No crate_name file found in ${DEP_DIR}"
 			fi
 		done
 	fi
 
-	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs"
+	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
 
 
 	echo ${COMMAND}
@@ -100,7 +96,12 @@ done
 if [ ${NEED_UPDATE} -eq 1 ]; then
 	COUNT=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps" | wc -l);
 	if [ $COUNT -ne 0 ]; then
-		DEPS_OBJS=${DIRECTORY}/target/deps/*/objs/*.o
+		OBJ_COUNT=$(find "${DIRECTORY}/target/deps" -maxdepth 3 -type f -path "*/objs/*.o" 2>/dev/null | wc -l)
+		if [ "${OBJ_COUNT}" -ne 0 ]; then
+			DEPS_OBJS=${DIRECTORY}/target/deps/*/objs/*.o
+		else
+			DEPS_OBJS=
+		fi
 	else
 		DEPS_OBJS=
 	fi

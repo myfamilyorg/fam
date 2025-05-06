@@ -70,16 +70,12 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
                                 if [ -n "${DEP_RLIB}" ]; then
                                         # Add --extern flag for this dependency
                                         EXTERN_FLAGS="${EXTERN_FLAGS} --extern ${DEP_CRATE_NAME}=${DEP_RLIB}"
-                                else    
-                                        echo "Warning: No lib${DEP_CRATE_NAME}.rlib found in ${DEP_DIR}/objs"
                                 fi
-                        else    
-                                echo "Warning: No crate_name file found in ${DEP_DIR}"
                         fi
                 done
         fi
 
-        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} /tmp/linker_lib.rs"
+        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} /tmp/linker_lib.rs -L${DIRECTORY}/target/deps/rlibs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"
