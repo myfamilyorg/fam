@@ -14,6 +14,7 @@ CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 
 # create a linker lib
 cat << EOM > /tmp/linker_lib.rs
+extern crate crate4;
 extern crate ${CRATE_NAME};
 pub use ${CRATE_NAME}::real_main;
 #[no_mangle]
@@ -40,7 +41,38 @@ do
 done
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} /tmp/linker_lib.rs --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib"
+
+ # Initialize the extern flags for dependencies
+        EXTERN_FLAGS=""
+
+        # Find all dependency directories in ${DIRECTORY}/target/deps/
+        DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
+
+        # Check if there are any dependency directories
+        if [ -n "${DEP_DIRS}" ]; then
+                for DEP_DIR in ${DEP_DIRS}; do
+                        # Extract the crate name from the crate_name file
+                        CRATE_NAME_FILE="${DEP_DIR}/crate_name"
+                        if [ -f "${CRATE_NAME_FILE}" ]; then
+                                DEP_CRATE_NAME=$(cat "${CRATE_NAME_FILE}")
+                                # Find the rlib file in the dependency's objs directory
+                                DEP_RLIB=$(find "${DEP_DIR}/objs" -type f -name "lib${DEP_CRATE_NAME}.rlib" | head -n 1)
+                                if [ -n "${DEP_RLIB}" ]; then
+                                        # Add --extern flag for this dependency
+                                        EXTERN_FLAGS="${EXTERN_FLAGS} --extern ${DEP_CRATE_NAME}=${DEP_RLIB}"
+                                else    
+                                        echo "Warning: No lib${DEP_CRATE_NAME}.rlib found in ${DEP_DIR}/objs"
+                                fi
+                        else    
+                                echo "Warning: No crate_name file found in ${DEP_DIR}"
+                        fi
+                done
+        fi
+
+        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} /tmp/linker_lib.rs"
+
+	#DEP_CRATE_NAME=`cat ${DIRECTORY}/target/deps/*/crate_name`
+	#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib --extern ${DEP_CRATE_NAME}=${DIRECTORY}/target/deps/a84859f52e51f868a15694dd4f5cf5a7a887357a/objs/libcrate4.rlib /tmp/linker_lib.rs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"

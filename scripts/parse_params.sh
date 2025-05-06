@@ -63,28 +63,6 @@ for arg in "$@"; do
 			echo "Error: --rustc requires a non-empty value: --rustc=famc" >&2
 			exit 1;
 		;;
-		--rustextra=*)
-			export RUSTEXTRA=${arg#*=};
-			if [ -z "${RUSTEXTRA}" ]; then
-				echo "Error: --rustextra requires a non-empty value: --rustextra=-L../famc/output-1.29.0" >&2
-				exit 1;
-			fi
-		;;
-		--rustextra)
-			echo "Error: --rustextra requires a non-empty value: --rustextra=-L../famc/output-1.29.0" >&2
-			exit 1;
-		;;
-		--linkextra=*)
-			export LINKEXTRA=${arg#*=};
-			if [ -z "${LINKEXTRA}" ]; then
-				echo "Error: --linkextra requires a non-empty value: --linkextra=../famc/output-1.29.0/libcore.rlib.o" >&2
-				exit 1;
-			fi
-		;;
-                --linkextra)
-			echo "Error: --linkextra requires a non-empty value: --linkextra=../famc/output-1.29.0/libcore.rlib.o" >&2
-			exit 1;
-                ;;
 		-d=*)
 			DIRECTORY=${arg#*=};
 			if [ -z "${DIRECTORY}" ]; then
@@ -104,21 +82,31 @@ for arg in "$@"; do
 	COUNT=$(expr $COUNT + 1)
 done
 
+if [ ! -e ${DIRECTORY}/fam.toml ]; then
+        echo "Error: No fam.toml file in this directory.";
+        exit 1;
+fi
+
 OS=$(uname -s)
 if [ "$OS" = "Linux" ]; then
 	LINK="-lm"
 elif [ "$OS" = "Darwin" ]; then
 	LINK=""
+else
+	echo "Only Linux and Macos are currrently supported."
+	exit 1;
 fi
 
 if ${RUSTC} --version | grep -q "mrustc"; then
 	EMIT_STR=""
 	EXT_STR=""
 	LIB_TYPE=lib
+	LINKEXTRA="`${RUSTC} --output`/libcore.rlib.o"
 else
 	EMIT_STR="--emit=obj"
 	EXT_STR=".o"
 	LIB_TYPE=staticlib
+	LINKEXTRA=""
 fi
 
 if [ ${CLEAN} -eq 0 ] && [ ${TEST} -eq 0 ] && [ ${COVERAGE} -eq 0 ]; then
