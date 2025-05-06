@@ -80,9 +80,6 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
         fi
 
         COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} /tmp/linker_lib.rs"
-
-	#DEP_CRATE_NAME=`cat ${DIRECTORY}/target/deps/*/crate_name`
-	#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib --extern ${DEP_CRATE_NAME}=${DIRECTORY}/target/deps/a84859f52e51f868a15694dd4f5cf5a7a887357a/objs/libcrate4.rlib /tmp/linker_lib.rs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"

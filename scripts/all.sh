@@ -12,10 +12,11 @@ mkdir -p ${DIRECTORY}/target/deps
 DEST_PATH=${DIRECTORY}/target/deps
 DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`
 i=1;
+echo "DC=${DEP_COUNT},TOML=${TOML}";
 while [ "$i" -le ${DEP_COUNT} ]
 do
 	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
-	DEP_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+	DEP_PATH=${DIRECTORY}/`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 	${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_PATH}
 	i=`expr $i + 1`
 done
@@ -103,7 +104,10 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	else
 		DEPS_OBJS=
 	fi
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${DIRECTORY}/target/objs/*.o ${LINK}"
+	SRC_OBJS=${DIRECTORY}/target/objs/*.o
+
+	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${SRC_OBJS} ${LINK}"
+	echo "final link"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi
