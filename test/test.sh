@@ -1,19 +1,25 @@
 #!/bin/bash
 
-if [ "$NO_COLOR" = "" ]; then
-   GREEN="\033[32m";
-   CYAN="\033[36m";
-   YELLOW="\033[33m";
-   BRIGHT_RED="\033[91m";
-   RESET="\033[0m";
-   BLUE="\033[34m";
+if [ "$1" = "famc" ]; then
+	FAMC=--rustc=famc
 else
-   GREEN="";
-   CYAN="";
-   YELLOW="";
-   BRIGHT_RED="";
-   RESET="";
-   BLUE="";
+	FAMC=
+fi
+
+if [ "$NO_COLOR" = "" ]; then
+	GREEN="\033[32m";
+	CYAN="\033[36m";
+	YELLOW="\033[33m";
+	BRIGHT_RED="\033[91m";
+	RESET="\033[0m";
+	BLUE="\033[34m";
+else
+	GREEN="";
+	CYAN="";
+	YELLOW="";
+	BRIGHT_RED="";
+	RESET="";
+	BLUE="";
 fi
 
 run_test() {
@@ -21,7 +27,7 @@ run_test() {
 	local EXPECTED="$2"
 
 	fam clean -d=${TARGET}
-	fam -d=${TARGET}
+	fam -d=${TARGET} ${FAMC}
 	./${TARGET}/target/out/${TARGET}
 	RESULT=$?;
 	if [ "${RESULT}" != "${EXPECTED}" ]; then
