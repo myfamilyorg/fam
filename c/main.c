@@ -47,29 +47,71 @@ int parse_deps(toml_result_t result, char *buf, int offset) {
 			const char *subkey = value.u.tab.key[j];
 			toml_datum_t subvalue = value.u.tab.value[j];
 
-			if (strcmp(subkey, "git") && strcmp(subkey, "path")) {
+			if (strcmp(subkey, "git") && strcmp(subkey, "path") &&
+			    strcmp(subkey, "rev")) {
 				error(
-				    "only subkeys of 'git' and 'path' are "
+				    "only subkeys of 'git', 'rev', and 'path' "
+				    "are "
 				    "supported",
+				    0);
+			}
+			if (!strcmp(subkey, "git") && value.u.tab.size == 1) {
+				error(
+				    "Error: git requires 'rev' to be specified "
+				    "as well",
+				    0);
+			}
+
+			if (!strcmp(subkey, "rev") && j == 0) {
+				error("rev must be the second subkey", 0);
+			}
+			if (j != 0 && strcmp(subkey, "rev")) {
+				error(
+				    "invalid dependency only 'rev' can come "
+				    "after 'git'",
+				    0);
+			}
+			if (j != 0 && strcmp(value.u.tab.key[0], "git")) {
+				error("only type 'git' allows additional entry",
+				      0);
+			}
+			if (j == 2) {
+				error(
+				    "too many additional entries for this "
+				    "dependency",
 				    0);
 			}
 
 			if (subvalue.type == TOML_STRING && subvalue.u.s) {
 				if (strstr(subvalue.u.s, " ") != NULL) {
-					error("subvalue cannot contain a space",
-					      0);
+					error(
+					    "subvalue cannot contain a "
+					    "space",
+					    0);
 				}
-				int ret = snprintf(
-				    buf + offset, MAX_OUT_SIZE - offset,
-				    " %s %s %s", key, subkey, subvalue.u.s);
-				if (ret < 0) error("file was too big!", 0);
-				offset += ret;
+				if (j == 0) {
+					int ret = snprintf(
+					    buf + offset, MAX_OUT_SIZE - offset,
+					    " %s %s %s", key, subkey,
+					    subvalue.u.s);
+					if (ret < 0)
+						error("file was too big!", 0);
+					offset += ret;
+				} else {
+					// rev
+					int ret = snprintf(
+					    buf + offset, MAX_OUT_SIZE - offset,
+					    "#%s", subvalue.u.s);
+					if (ret < 0)
+						error("file was too big!", 0);
+					offset += ret;
+				}
 			} else {
 				error("not a string\n", subkey);
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 int main(int argc, char **argv) {

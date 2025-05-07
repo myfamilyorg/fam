@@ -16,7 +16,7 @@ CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 
 DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
 
-rm /tmp/linker_lib.rs
+rm -f /tmp/linker_lib.rs
 if [ -n "${DEP_DIRS}" ]; then
 	for DEP_DIR in ${DEP_DIRS}; do
 		CRATE_NAME_FILE="${DEP_DIR}/crate_name"

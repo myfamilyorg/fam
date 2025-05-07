@@ -1,8 +1,7 @@
 #!/bin/bash
-
 TOML=${DIRECTORY}/fam.toml
 
-CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
+CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}` || { echo "Error parsing $1"; exit 1; }
 
 
 mkdir -p ${DIRECTORY}/target/objs
@@ -21,8 +20,13 @@ do
 
 	if [ "${DEP_METHOD}" = "git" ]; then
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
+		GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
+		GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
 			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
+			if [ "" != "$GIT_COMMIT" ]; then
+				git -C "${DIRECTORY}/target/deps/dl/${DEP_NAME}" checkout "${GIT_COMMIT}"
+			fi
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
 	else

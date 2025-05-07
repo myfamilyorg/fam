@@ -14,7 +14,7 @@ if [ -z "$SCRIPT_PATH" ]; then
 fi
 FAM_BASE=$(dirname "$(dirname "$SCRIPT_PATH")")
 
-CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${DEST_PATH}/fam.toml`
+CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${DEST_PATH}/fam.toml` || { echo "Error parsing ${DEST_PATH}/fam.toml"; exit 1; }
 SHASUM=`${FAM_BASE}/scripts/shasum.sh ${DEST_PATH}/fam.toml` || exit 1;
 
 if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
@@ -34,9 +34,14 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 
 		if [ "${DEP_METHOD}" = "git" ]; then
 			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
+			GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
+			GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
 			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
 				${GIT_COMMAND} || exit 1;
+				if [ "" != "$GIT_COMMIT" ]; then
+					git -C "${DEST_BASE}/dl/${DEP_NAME}" checkout "${GIT_COMMIT}"
+				fi
 			fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"
 			DEP_PATH="${CONFIG_PATH}"

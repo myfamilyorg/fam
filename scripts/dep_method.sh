@@ -6,7 +6,7 @@ if [ -z "$SCRIPT_PATH" ]; then
 fi
 FAM_BASE=$(dirname "$(dirname "$SCRIPT_PATH")")
 
-TOML=`${FAM_BASE}/bin/famtoml $1` || exit 1;
+TOML=`${FAM_BASE}/bin/famtoml $1` || { echo "Error parsing $1"; exit 1; }
 CRATE_INDEX=`expr 2 + $2 \* 3`
 CRATE_NAME=`echo ${TOML} | cut -d ' ' -f ${CRATE_INDEX}`
 echo ${CRATE_NAME}

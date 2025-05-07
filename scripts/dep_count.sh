@@ -6,5 +6,5 @@ if [ -z "$SCRIPT_PATH" ]; then
 fi
 FAM_BASE=$(dirname "$(dirname "$SCRIPT_PATH")")
 
-TOML=`${FAM_BASE}/bin/famtoml $1` || exit 1;
+TOML=`${FAM_BASE}/bin/famtoml $1` || { echo "Error parsing $1"; exit 1; }
 echo ${TOML} | cut -d ' ' -f 3
