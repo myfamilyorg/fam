@@ -113,10 +113,17 @@ fi
 
 . ${FAM_BASE}/scripts/linker.sh ${DIRECTORY}
 
+CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}` || { echo "Error parsing $1"; exit 1; }
+if [ "${CRATE_TYPE}" = "lib" ]; then
+	FINAL_OUTPUT=${DIRECTORY}/target/out/${CRATE_NAME}.so
+else
+	FINAL_OUTPUT=${DIRECTORY}/target/out/${CRATE_NAME}
+fi
+
 NEED_UPDATE=0
 for file in `find ${DIRECTORY}/target/objs/*.o`
 do
-	if [ ! -e ${DIRECTORY}/target/out/${CRATE_NAME} ] || [ $file -nt ${DIRECTORY}/target/out/${CRATE_NAME} ]; then
+	if [ ! -e ${FINAL_OUTPUT} ] || [ $file -nt ${FINAL_OUTPUT} ]; then
 		NEED_UPDATE=1
 		break
 	fi
@@ -145,7 +152,15 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
     		fi
 	fi
 
-	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${RLIB_OBJS} ${SRC_OBJS} ${LINK}"
+	if [ "${CRATE_TYPE}" = "lib" ]; then
+		SHARED=-dynamiclib
+		# linux:
+		# SHARED=-shared
+	else
+		SHARED=
+	fi
+
+	COMMAND="${CC} ${SHARED} -o ${FINAL_OUTPUT} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${RLIB_OBJS} ${SRC_OBJS} ${LINK}"
 	echo "${COMMAND}";
 	${COMMAND} || exit 1;
 fi
