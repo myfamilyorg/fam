@@ -36,11 +36,14 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 			GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
 			GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
-			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
+			GIT_COMMAND="git clone --depth 1 $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
 			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
 				${GIT_COMMAND} || exit 1;
 				if [ "" != "$GIT_COMMIT" ]; then
 					git -C "${DEST_BASE}/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
+				else
+					echo "Error: commit must be specified: ${DEP_NAME}";
+					exit 1;
 				fi
 			fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"

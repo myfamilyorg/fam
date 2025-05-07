@@ -23,9 +23,12 @@ do
 		GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
 		GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
-			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
+			git clone --depth 1 $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
 			if [ "" != "$GIT_COMMIT" ]; then
 				git -C "${DIRECTORY}/target/deps/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
+			else
+				echo "Error: commit must be specified: ${DEP_NAME}";
+				exit 1;
 			fi
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
