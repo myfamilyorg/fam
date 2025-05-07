@@ -12,6 +12,7 @@ mkdir -p ${DIRECTORY}/target/deps/dl
 
 DEST_PATH=${DIRECTORY}/target/deps
 DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}` || exit 1;
+CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}` || exit 1;
 i=1;
 
 while [ "$i" -le ${DEP_COUNT} ]
@@ -109,7 +110,13 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 		done
 	fi
 
-	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	if [ "${CRATE_TYPE}" = "proc-macro" ]; then
+		EXT=${MACRO_EXT}
+	else
+		EXT=rlib
+	fi
+
+	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
 
 
 	echo ${COMMAND}

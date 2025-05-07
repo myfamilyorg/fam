@@ -82,7 +82,13 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
                 done
         fi
 
-        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} /tmp/linker_lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	if [ "${CRATE_TYPE}" = "proc-macro" ]; then
+                EXT=${MACRO_EXT}
+        else
+                EXT=rlib
+        fi
+
+        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} /tmp/linker_lib.rs -L${DIRECTORY}/target/deps/rlibs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"

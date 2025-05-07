@@ -90,8 +90,10 @@ fi
 OS=$(uname -s)
 if [ "$OS" = "Linux" ]; then
 	LINK="-lm"
+	MACRO_EXT=so
 elif [ "$OS" = "Darwin" ]; then
 	LINK=""
+	MACRO_EXT=dylib
 else
 	echo "Only Linux and Macos are currrently supported."
 	exit 1;
