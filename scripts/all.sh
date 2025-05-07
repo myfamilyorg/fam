@@ -24,7 +24,7 @@ do
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
 			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
 		fi
-		CONFIG_PATH="${DIRECTORY}/target/deps/dl/${DEP_NAME}"
+		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
 	else
 		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 	fi
@@ -36,6 +36,7 @@ do
 		# Relative path: prepend DIRECTORY
 		DEP_PATH="${DIRECTORY}/${CONFIG_PATH}"
 	fi
+
 
 	#DEP_PATH="${DIRECTORY}/${CONFIG_PATH}";
 	${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_PATH} || exit 1;
