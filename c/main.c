@@ -146,17 +146,31 @@ int main(int argc, char **argv) {
 
 	toml_datum_t bin = toml_table_find(crate, "bin");
 	toml_datum_t lib = toml_table_find(crate, "lib");
+	toml_datum_t macro = toml_table_find(crate, "proc-macro");
 
-	if (bin.type != TOML_STRING && lib.type != TOML_STRING) {
-		error("'lib' or 'bin' must be specified!", 0);
-	} else if (bin.type == TOML_STRING && lib.type == TOML_STRING) {
-		error("only one of either 'bin' or 'lib' may be specified!", 0);
+	int count = 0;
+	if (bin.type == TOML_STRING) count++;
+	if (lib.type == TOML_STRING) count++;
+	if (macro.type == TOML_STRING) count++;
+
+	if (count == 0) {
+		error("'lib', 'macro', or 'bin' must be specified!", 0);
+	} else if (count > 1) {
+		error(
+		    "only one of either 'lib', 'macro', or 'bin' may be "
+		    "specified!",
+		    0);
 	} else if (bin.type == TOML_STRING) {
 		if (strstr(bin.u.s, " ") != NULL) {
 			error("bin cannot contain a space", 0);
 		}
 
 		offset = snprintf(buf, sizeof(buf), "bin %s", bin.u.s);
+	} else if (macro.type == TOML_STRING) {
+		if (strstr(macro.u.s, " ") != NULL) {
+			error("proc-macro cannot contain a space", 0);
+		}
+		offset = snprintf(buf, sizeof(buf), "proc-macro %s", macro.u.s);
 	} else {
 		if (strstr(lib.u.s, " ") != NULL) {
 			error("lib cannot contain a space", 0);

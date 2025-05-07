@@ -2,6 +2,7 @@
 TOML=${DIRECTORY}/fam.toml
 
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}` || { echo "Error parsing $1"; exit 1; }
+CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}` || { echo "Error parsing $1"; exit 1; }
 
 
 mkdir -p ${DIRECTORY}/target/objs
@@ -76,16 +77,20 @@ if [ -e ${DIRECTORY}/rust ]; then
 fi
 
 if [ ${NEED_UPDATE} -eq 1 ]; then
-	#DEP_CRATE_NAME=`cat ${DIRECTORY}/target/deps/*/crate_name`
-	#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib --extern ${DEP_CRATE_NAME}=${DIRECTORY}/target/deps/a84859f52e51f868a15694dd4f5cf5a7a887357a/objs/libcrate4.rlib ${DIRECTORY}/rust/lib.rs"
-	#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${DIRECTORY}/rust/lib.rs"
-
-
 	# Initialize the extern flags for dependencies
 	EXTERN_FLAGS=""
 
 	# Find all dependency directories in ${DIRECTORY}/target/deps/
 	DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
+
+	if [ "${CRATE_TYPE}" = "bin" ]; then
+		CT="lib";
+	elif [ "${CRATE_TYPE}" = "proc-macro" ]; then
+		CT="proc-macro";
+	else
+		CT="lib"
+	fi
+
 
 	# Check if there are any dependency directories
 	if [ -n "${DEP_DIRS}" ]; then
@@ -104,7 +109,7 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 		done
 	fi
 
-	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.rlib ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
 
 
 	echo ${COMMAND}

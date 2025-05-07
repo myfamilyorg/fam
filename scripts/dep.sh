@@ -15,6 +15,7 @@ fi
 FAM_BASE=$(dirname "$(dirname "$SCRIPT_PATH")")
 
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${DEST_PATH}/fam.toml` || { echo "Error parsing ${DEST_PATH}/fam.toml"; exit 1; }
+CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${DEST_PATH}/fam.toml` || { echo "Error parsing ${DEST_PATH}/fam.toml"; exit 1; }
 SHASUM=`${FAM_BASE}/scripts/shasum.sh ${DEST_PATH}/fam.toml` || exit 1;
 
 if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
@@ -95,8 +96,14 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 	done
 
 	if [ -e ${DEST_PATH}/rust/lib.rs ]; then
-		#COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs"
-		COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=lib -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.rlib ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
+		if [ "${CRATE_TYPE}" = "bin" ]; then
+			CT="lib";
+		elif [ "${CRATE_TYPE}" = "proc-macro" ]; then
+			CT="proc-macro";
+		else
+			CT="lib"
+		fi
+		COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.rlib ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
         	echo ${COMMAND}
         	${COMMAND} || exit 1;
 		#cp ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEST_BASE}/rlibs

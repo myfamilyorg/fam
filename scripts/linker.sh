@@ -11,6 +11,7 @@ TOML=${DIRECTORY}/fam.toml
 
 
 CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
+CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}`
 
 # create a linker lib
 
@@ -29,12 +30,18 @@ fi
 
 cat << EOM >> /tmp/linker_lib.rs
 extern crate ${CRATE_NAME};
-pub use ${CRATE_NAME}::real_main;
 #[no_mangle]
 fn panic_impl() {}
-#[no_mangle]
-pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
 EOM
+
+if [ "${CRATE_TYPE}" = "bin" ]; then
+	echo "pub use ${CRATE_NAME}::real_main;" >> /tmp/linker_lib.rs
+	echo "#[no_mangle]" >> /tmp/linker_lib.rs
+	echo "pub extern \"C\" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }" >> /tmp/linker_lib.rs
+else
+	echo "#[no_mangle]" >> /tmp/linker_lib.rs
+	echo "pub extern \"C\" fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0 }" >> /tmp/linker_lib.rs
+fi
 
 echo "extern int real_main_impl(int, char **); int main(int argc, char **argv) { return real_main_impl(argc, argv); }" > /tmp/linker_main.c
 
