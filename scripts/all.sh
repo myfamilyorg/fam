@@ -19,8 +19,6 @@ do
 	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
 	DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}`
 
-	echo $DEP_METHOD
-
 	if [ "${DEP_METHOD}" = "git" ]; then
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
@@ -31,7 +29,6 @@ do
 		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 	fi
 
-	echo "dep_name=${DEP_NAME},url=${CONFIG_PATH},method=${DEP_METHOD}"
 	if [[ "${CONFIG_PATH}" == /* ]]; then
 		# Absolute path: use CONFIG_PATH directly
 		DEP_PATH="${CONFIG_PATH}"
@@ -142,6 +139,5 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 
 	COMMAND="${CC} -o ${DIRECTORY}/target/out/${CRATE_NAME} ${DIRECTORY}/target/linker_main.o ${LINKEXTRA} ${DEPS_OBJS} ${RLIB_OBJS} ${SRC_OBJS} ${LINK}"
 	echo "${COMMAND}";
-	#echo ${COMMAND}
 	${COMMAND} || exit 1;
 fi

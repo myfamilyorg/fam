@@ -6,8 +6,6 @@
 DEST_PATH=$1
 DEST_BASE=$2
 
-echo "dep.sh with $1 / $2"
-
 mkdir -p ${DEST_BASE}/rlibs
 
 SCRIPT_PATH=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null)
@@ -37,7 +35,6 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 		if [ "${DEP_METHOD}" = "git" ]; then
 			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
-			echo "dep.sh: ${GIT_COMMAND}";
 			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
 				${GIT_COMMAND}
 			fi
@@ -57,7 +54,6 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 
 		fi
 
-		echo "dep_name=${DEP_NAME},dep_method=${DEP_METHOD},CONFIG_PATH=${CONFIG_PATH}"
 		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`;
 		DEP_RLIBS="${DEP_RLIBS} --extern ${DEP_NAME}=${DEST_BASE}/rlibs/lib${DEP_NAME}.rlib";
 		${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_BASE} || exit 1;
