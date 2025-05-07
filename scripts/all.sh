@@ -11,22 +11,22 @@ mkdir -p ${DIRECTORY}/target/deps
 mkdir -p ${DIRECTORY}/target/deps/dl
 
 DEST_PATH=${DIRECTORY}/target/deps
-DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`
+DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}` || exit 1;
 i=1;
 
 while [ "$i" -le ${DEP_COUNT} ]
 do
-	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
-	DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}`
+	DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}` || exit 1;
+	DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}` || exit 1;
 
 	if [ "${DEP_METHOD}" = "git" ]; then
-		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
 			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
 	else
-		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 	fi
 
 	if [[ "${CONFIG_PATH}" == /* ]]; then

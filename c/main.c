@@ -69,7 +69,7 @@ int parse_deps(toml_result_t result, char *buf, int offset) {
 			}
 		}
 	}
-	return 0;
+	return 1;
 }
 
 int main(int argc, char **argv) {

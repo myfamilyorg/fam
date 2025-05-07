@@ -22,28 +22,27 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 	
 	# First handle deps
 	TOML=${DEST_PATH}/fam.toml
-	DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`;
+	DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}` || exit 1;
 	i=1;
 
 	DEP_RLIBS="";
 	while [ $i -le ${DEP_COUNT} ]
 	do
 
-		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
-		DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}`
+		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}` || exit 1;
+		DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}` || exit 1;
 
 		if [ "${DEP_METHOD}" = "git" ]; then
-			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
 			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
-				${GIT_COMMAND}
+				${GIT_COMMAND} || exit 1;
 			fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"
 			DEP_PATH="${CONFIG_PATH}"
 		else
-			CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+			CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 
-			#CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 			if [[ "${CONFIG_PATH}" == /* ]]; then
 				# Absolute path: use CONFIG_PATH directly
 				DEP_PATH="${CONFIG_PATH}"
@@ -54,7 +53,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 
 		fi
 
-		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`;
+		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}` || exit 1;
 		DEP_RLIBS="${DEP_RLIBS} --extern ${DEP_NAME}=${DEST_BASE}/rlibs/lib${DEP_NAME}.rlib";
 		${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_BASE} || exit 1;
 		i=`expr $i + 1`
