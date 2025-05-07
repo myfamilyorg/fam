@@ -115,7 +115,11 @@ fi
 
 CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}` || { echo "Error parsing $1"; exit 1; }
 if [ "${CRATE_TYPE}" = "lib" ]; then
-	FINAL_OUTPUT=${DIRECTORY}/target/out/${CRATE_NAME}.so
+	if [ "$OS" = "Linux" ]; then
+		FINAL_OUTPUT=${DIRECTORY}/target/out/lib${CRATE_NAME}.so
+	elif [ "$OS" = "Darwin" ]; then
+		FINAL_OUTPUT=${DIRECTORY}/target/out/lib${CRATE_NAME}.dylib
+	fi
 else
 	FINAL_OUTPUT=${DIRECTORY}/target/out/${CRATE_NAME}
 fi
@@ -147,15 +151,17 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 	if [ -d "${DIRECTORY}/target/deps/rlibs" ]; then
 		OBJ_COUNT=$(find "${DIRECTORY}/target/deps/rlibs" -maxdepth 1 -type f -name "*.o" 2>/dev/null | wc -l)
 		if [ "${OBJ_COUNT}" -gt 0 ]; then
-		# Use wildcard to include all .o files
+			# Use wildcard to include all .o files
         		RLIB_OBJS="${DIRECTORY}/target/deps/rlibs/*.o"
     		fi
 	fi
 
 	if [ "${CRATE_TYPE}" = "lib" ]; then
-		SHARED=-dynamiclib
-		# linux:
-		# SHARED=-shared
+		if [ "$OS" = "Linux" ]; then
+			SHARED=-shared
+		elif [ "$OS" = "Darwin" ]; then
+			SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${CRATE_NAME}.dylib"
+		fi
 	else
 		SHARED=
 	fi
