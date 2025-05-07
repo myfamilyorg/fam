@@ -112,11 +112,13 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 
 	if [ "${CRATE_TYPE}" = "proc-macro" ]; then
 		EXT=${MACRO_EXT}
+		PANIC_ABORT=""
 	else
+		PANIC_ABORT="-C panic=abort"
 		EXT=rlib
 	fi
 
-	COMMAND="${RUSTC} -C panic=abort ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
 
 
 	echo ${COMMAND}

@@ -99,6 +99,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 		if [ "${CRATE_TYPE}" = "bin" ]; then
 			EXT=rlib;
 			CT="lib";
+			PANIC_ABORT="-C panic=abort"
 		elif [ "${CRATE_TYPE}" = "proc-macro" ]; then
 			OS=$(uname -s)
 			if [ "$OS" = "Darwin" ]; then
@@ -108,11 +109,13 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			fi
 			EXT=${MACRO_EXT};
 			CT="proc-macro";
+			PANIC_ABORT=""
 		else
+			PANIC_ABORT="-C panic=abort"
 			EXT=rlib;
 			CT="lib"
 		fi
-		COMMAND="${RUSTC} -C panic=abort ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.${EXT} ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
+		COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.${EXT} ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
         	echo ${COMMAND}
         	${COMMAND} || exit 1;
 		#cp ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEST_BASE}/rlibs
