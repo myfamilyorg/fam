@@ -6,6 +6,8 @@
 DEST_PATH=$1
 DEST_BASE=$2
 
+echo "dep.sh with $1 / $2"
+
 mkdir -p ${DEST_BASE}/rlibs
 
 SCRIPT_PATH=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null)
@@ -34,21 +36,26 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 
 		if [ "${DEP_METHOD}" = "git" ]; then
 			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-			git clone $GIT_PATH ${DIRECTORY}/target/dl/${DEP_NAME}
-			CONFIG_PATH="${DIRECTORY}/target/dl/${DEP_NAME}"
-		else
-			CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-		fi
-
-
-		#CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-		if [[ "${CONFIG_PATH}" == /* ]]; then
-			# Absolute path: use CONFIG_PATH directly
+			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
+			echo ${GIT_COMMAND};
+			${GIT_COMMAND}
+			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"
 			DEP_PATH="${CONFIG_PATH}"
 		else
-			# Relative path: prepend DIRECTORY
-			DEP_PATH="${DEST_PATH}/${CONFIG_PATH}"
+			CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+
+			#CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+			if [[ "${CONFIG_PATH}" == /* ]]; then
+				# Absolute path: use CONFIG_PATH directly
+				DEP_PATH="${CONFIG_PATH}"
+			else
+				# Relative path: prepend DIRECTORY
+				DEP_PATH="${DEST_PATH}/${CONFIG_PATH}"
+			fi
+
 		fi
+
+		echo "dep_name=${DEP_NAME},dep_method=${DEP_METHOD},CONFIG_PATH=${CONFIG_PATH}"
 		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`;
 		DEP_RLIBS="${DEP_RLIBS} --extern ${DEP_NAME}=${DEST_BASE}/rlibs/lib${DEP_NAME}.rlib";
 		${FAM_BASE}/scripts/dep.sh ${DEP_PATH} ${DEST_BASE} || exit 1;

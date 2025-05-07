@@ -8,7 +8,7 @@ CRATE_NAME=`${FAM_BASE}/scripts/crate_name.sh ${TOML}`
 mkdir -p ${DIRECTORY}/target/objs
 mkdir -p ${DIRECTORY}/target/out
 mkdir -p ${DIRECTORY}/target/deps
-mkdir -p ${DIRECTORY}/target/dl
+mkdir -p ${DIRECTORY}/target/deps/dl
 
 DEST_PATH=${DIRECTORY}/target/deps
 DEP_COUNT=`${FAM_BASE}/scripts/dep_count.sh ${TOML}`
@@ -23,8 +23,8 @@ do
 
 	if [ "${DEP_METHOD}" = "git" ]; then
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-		git clone $GIT_PATH ${DIRECTORY}/target/dl/${DEP_NAME}
-		CONFIG_PATH="${DIRECTORY}/target/dl/${DEP_NAME}"
+		git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
+		CONFIG_PATH="${DIRECTORY}/target/deps/dl/${DEP_NAME}"
 	else
 		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 	fi
