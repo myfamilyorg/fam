@@ -40,7 +40,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
 				${GIT_COMMAND} || exit 1;
 				if [ "" != "$GIT_COMMIT" ]; then
-					git -C "${DEST_BASE}/dl/${DEP_NAME}" checkout "${GIT_COMMIT}"
+					git -C "${DEST_BASE}/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
 				fi
 			fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"

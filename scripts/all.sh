@@ -25,7 +25,7 @@ do
 		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
 			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
 			if [ "" != "$GIT_COMMIT" ]; then
-				git -C "${DIRECTORY}/target/deps/dl/${DEP_NAME}" checkout "${GIT_COMMIT}"
+				git -C "${DIRECTORY}/target/deps/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
 			fi
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
