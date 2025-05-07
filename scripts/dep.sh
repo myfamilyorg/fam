@@ -107,7 +107,12 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			else
 				MACRO_EXT=so
 			fi
-			EXT=${MACRO_EXT};
+			if ${RUSTC} --version | grep -q "mrustc"; then
+				EXT=rlib
+			else
+				EXT=${MACRO_EXT};
+			fi
+
 			CT="proc-macro";
 			PANIC_ABORT=""
 		else
