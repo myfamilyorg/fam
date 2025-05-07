@@ -18,6 +18,7 @@ CRATE_TYPE=`${FAM_BASE}/scripts/crate_type.sh ${TOML}`
 DEP_DIRS=$(find "${DIRECTORY}/target/deps" -maxdepth 1 -type d -not -path "${DIRECTORY}/target/deps")
 
 rm -f /tmp/linker_lib.rs
+echo "#![no_std]" >> /tmp/linker_lib.rs;
 if [ -n "${DEP_DIRS}" ]; then
 	for DEP_DIR in ${DEP_DIRS}; do
 		CRATE_NAME_FILE="${DEP_DIR}/crate_name"
@@ -32,6 +33,11 @@ cat << EOM >> /tmp/linker_lib.rs
 extern crate ${CRATE_NAME};
 #[no_mangle]
 fn panic_impl() {}
+use core::panic::PanicInfo;
+#[panic_handler]
+fn fam_panic(_info: &PanicInfo) -> ! {
+        loop {}
+}
 EOM
 
 if [ "${CRATE_TYPE}" = "bin" ]; then
@@ -88,7 +94,7 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
                 EXT=rlib
         fi
 
-        COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} /tmp/linker_lib.rs -L${DIRECTORY}/target/deps/rlibs"
+        COMMAND="${RUSTC} -C panic=abort ${RUSTEXTRA} --crate-name=${CRATE_NAME}_linker --crate-type=${LIB_TYPE} -o ${DIRECTORY}/target/objs/${CRATE_NAME}${EXT_STR} --extern ${CRATE_NAME}=${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} /tmp/linker_lib.rs -L${DIRECTORY}/target/deps/rlibs"
 	echo ${COMMAND}
 	${COMMAND} || exit 1;
 	COMMAND="${CC} -c /tmp/linker_main.c -o ${DIRECTORY}/target/linker_main.o"

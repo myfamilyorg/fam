@@ -116,7 +116,7 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 		EXT=rlib
 	fi
 
-	COMMAND="${RUSTC} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	COMMAND="${RUSTC} -C panic=abort ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
 
 
 	echo ${COMMAND}
