@@ -6,7 +6,6 @@
 DEST_PATH=$1
 DEST_BASE=$2
 
-echo "DEST_PATH=$1"
 mkdir -p ${DEST_BASE}/rlibs
 
 SCRIPT_PATH=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null)
@@ -29,7 +28,20 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 	DEP_RLIBS="";
 	while [ $i -le ${DEP_COUNT} ]
 	do
-		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+
+		DEP_NAME=`${FAM_BASE}/scripts/dep_crate.sh ${TOML} ${i}`
+		DEP_METHOD=`${FAM_BASE}/scripts/dep_method.sh ${TOML} ${i}`
+
+		if [ "${DEP_METHOD}" = "git" ]; then
+			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+			git clone $GIT_PATH ${DIRECTORY}/target/dl/${DEP_NAME}
+			CONFIG_PATH="${DIRECTORY}/target/dl/${DEP_NAME}"
+		else
+			CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
+		fi
+
+
+		#CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 		if [[ "${CONFIG_PATH}" == /* ]]; then
 			# Absolute path: use CONFIG_PATH directly
 			DEP_PATH="${CONFIG_PATH}"
