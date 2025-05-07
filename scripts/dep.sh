@@ -37,8 +37,10 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 		if [ "${DEP_METHOD}" = "git" ]; then
 			GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
 			GIT_COMMAND="git clone $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
-			echo ${GIT_COMMAND};
-			${GIT_COMMAND}
+			echo "dep.sh: ${GIT_COMMAND}";
+			if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
+				${GIT_COMMAND}
+			fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"
 			DEP_PATH="${CONFIG_PATH}"
 		else

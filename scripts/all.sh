@@ -23,7 +23,9 @@ do
 
 	if [ "${DEP_METHOD}" = "git" ]; then
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
-		git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
+		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
+			git clone $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
+		fi
 		CONFIG_PATH="${DIRECTORY}/target/deps/dl/${DEP_NAME}"
 	else
 		CONFIG_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}`;
