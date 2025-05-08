@@ -39,7 +39,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 			GIT_DIR="${DEST_BASE}/dl/${DEP_NAME}";
 			if [ ! -e ${GIT_DIR} ]; then
-				git clone --depth 1 $GIT_PATH ${GIT_DIR} || exit 1;
+				git clone $GIT_PATH ${GIT_DIR} || exit 1;
 				HEAD=`git -C ${GIT_DIR} rev-parse HEAD` || exit 1;
 				FAM_LOCK="${DEST_PATH}/fam.lock";
 				touch ${FAM_LOCK}

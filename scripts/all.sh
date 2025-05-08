@@ -26,14 +26,14 @@ do
 		GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 		GIT_DIR="${DIRECTORY}/target/deps/dl/${DEP_NAME}";
 		if [ ! -e ${GIT_DIR} ]; then
-			git clone --depth 1 $GIT_PATH ${GIT_DIR} || exit 1;
+			git clone $GIT_PATH ${GIT_DIR} || exit 1;
 			HEAD=`git -C ${GIT_DIR} rev-parse HEAD` || exit 1;
 			touch ${DIRECTORY}/fam.lock
 			CUR_REV=`${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}`
 			echo "command=${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}";
-			echo "CUR=${CUR_REV}"
+			echo "CUR=${CUR_REV} command = git -C ${GIT_DIR} checkout ${CUR_REV}"
 			if [ "${CUR_REV}" != "" ]; then
-				git -C ${GIT_DIR} checkout ${CUR_REV} 2>/dev/null || exit 1;
+				git -C ${GIT_DIR} checkout ${CUR_REV} || exit 1;
 			fi
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
