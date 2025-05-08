@@ -47,38 +47,18 @@ int parse_deps(toml_result_t result, char *buf, int offset) {
 			const char *subkey = value.u.tab.key[j];
 			toml_datum_t subvalue = value.u.tab.value[j];
 
-			if (strcmp(subkey, "git") && strcmp(subkey, "path") &&
-			    strcmp(subkey, "rev")) {
+			if (strcmp(subkey, "git") && strcmp(subkey, "path")) {
 				error(
-				    "only subkeys of 'git', 'rev', and 'path' "
+				    "only subkeys of 'git' and 'path' "
 				    "are "
 				    "supported",
 				    0);
 			}
-			if (!strcmp(subkey, "git") && value.u.tab.size == 1) {
+			if (j != 0) {
 				error(
-				    "Error: git requires 'rev' to be specified "
-				    "as well",
-				    0);
-			}
-
-			if (!strcmp(subkey, "rev") && j == 0) {
-				error("rev must be the second subkey", 0);
-			}
-			if (j != 0 && strcmp(subkey, "rev")) {
-				error(
-				    "invalid dependency only 'rev' can come "
-				    "after 'git'",
-				    0);
-			}
-			if (j != 0 && strcmp(value.u.tab.key[0], "git")) {
-				error("only type 'git' allows additional entry",
-				      0);
-			}
-			if (j == 2) {
-				error(
-				    "too many additional entries for this "
-				    "dependency",
+				    "invalid dependency only one kv pair can "
+				    "be "
+				    "specified. ",
 				    0);
 			}
 
@@ -89,23 +69,11 @@ int parse_deps(toml_result_t result, char *buf, int offset) {
 					    "space",
 					    0);
 				}
-				if (j == 0) {
-					int ret = snprintf(
-					    buf + offset, MAX_OUT_SIZE - offset,
-					    " %s %s %s", key, subkey,
-					    subvalue.u.s);
-					if (ret < 0)
-						error("file was too big!", 0);
-					offset += ret;
-				} else {
-					// rev
-					int ret = snprintf(
-					    buf + offset, MAX_OUT_SIZE - offset,
-					    "#%s", subvalue.u.s);
-					if (ret < 0)
-						error("file was too big!", 0);
-					offset += ret;
-				}
+				int ret = snprintf(
+				    buf + offset, MAX_OUT_SIZE - offset,
+				    " %s %s %s", key, subkey, subvalue.u.s);
+				if (ret < 0) error("file was too big!", 0);
+				offset += ret;
 			} else {
 				error("not a string\n", subkey);
 			}
@@ -127,7 +95,10 @@ int main(int argc, char **argv) {
 		fp = fopen(argv[1], "r");
 		if (!fp) error("cannot open specified file - ", argv[1]);
 	} else
-		error("either 0 or 1 arguments must be specified!", 0);
+		error(
+		    "either 0 or 1 arguments must be "
+		    "specified!",
+		    0);
 
 	// Parse the toml file
 	toml_result_t result = toml_parse_file(fp);
@@ -154,10 +125,15 @@ int main(int argc, char **argv) {
 	if (macro.type == TOML_STRING) count++;
 
 	if (count == 0) {
-		error("'lib', 'macro', or 'bin' must be specified!", 0);
+		error(
+		    "'lib', 'macro', or 'bin' must be "
+		    "specified!",
+		    0);
 	} else if (count > 1) {
 		error(
-		    "only one of either 'lib', 'macro', or 'bin' may be "
+		    "only one of either 'lib', 'macro', or "
+		    "'bin' may "
+		    "be "
 		    "specified!",
 		    0);
 	} else if (bin.type == TOML_STRING) {
