@@ -91,7 +91,11 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
         fi
 
 	if [ "${CRATE_TYPE}" = "proc-macro" ]; then
-                EXT=${MACRO_EXT}
+		if ${RUSTC} --version | grep -q "mrustc"; then
+                        EXT=rlib
+                else
+                        EXT=${MACRO_EXT};
+                fi
         else
                 EXT=rlib
         fi
