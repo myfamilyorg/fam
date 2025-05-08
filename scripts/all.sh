@@ -24,14 +24,17 @@ do
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
 		#GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
 		GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
-		if [ ! -e ${DIRECTORY}/target/deps/dl/${DEP_NAME} ]; then
-			git clone --depth 1 $GIT_PATH ${DIRECTORY}/target/deps/dl/${DEP_NAME}
-			#if [ "" != "$GIT_COMMIT" ]; then
-			#	git -C "${DIRECTORY}/target/deps/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
-			#else
-			#	echo "Error: commit must be specified: ${DEP_NAME}";
-			#	exit 1;
-			#fi
+		GIT_DIR="${DIRECTORY}/target/deps/dl/${DEP_NAME}";
+		if [ ! -e ${GIT_DIR} ]; then
+			git clone --depth 1 $GIT_PATH ${GIT_DIR} || exit 1;
+			HEAD=`git -C ${GIT_DIR} rev-parse HEAD` || exit 1;
+			touch ${DIRECTORY}/fam.lock
+			CUR_REV=`${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}`
+			echo "command=${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}";
+			echo "CUR=${CUR_REV}"
+			if [ "${CUR_REV}" != "" ]; then
+				git -C ${GIT_DIR} checkout ${CUR_REV} 2>/dev/null || exit 1;
+			fi
 		fi
 		CONFIG_PATH="target/deps/dl/${DEP_NAME}"
 	else
