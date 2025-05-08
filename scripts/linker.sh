@@ -38,6 +38,8 @@ use core::panic::PanicInfo;
 fn fam_panic(_info: &PanicInfo) -> ! {
         loop {}
 }
+#[no_mangle]
+fn rust_eh_personality() {}
 EOM
 
 if [ "${CRATE_TYPE}" = "bin" ]; then

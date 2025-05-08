@@ -30,8 +30,6 @@ do
 			HEAD=`git -C ${GIT_DIR} rev-parse HEAD` || exit 1;
 			touch ${DIRECTORY}/fam.lock
 			CUR_REV=`${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}`
-			echo "command=${FAM_BASE}/bin/locktoml ${DIRECTORY}/fam.lock ${DEP_NAME} ${HEAD}";
-			echo "CUR=${CUR_REV} command = git -C ${GIT_DIR} checkout ${CUR_REV}"
 			if [ "${CUR_REV}" != "" ]; then
 				git -C ${GIT_DIR} checkout ${CUR_REV} || exit 1;
 			fi

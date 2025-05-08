@@ -44,34 +44,11 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 				FAM_LOCK="${DEST_PATH}/fam.lock";
 				touch ${FAM_LOCK}
 				CUR_REV=`${FAM_BASE}/bin/locktoml ${FAM_LOCK} ${DEP_NAME} ${HEAD}`
-				echo "command=${FAM_BASE}/bin/locktoml ${FAM_LOCK} ${DEP_NAME} ${HEAD}";
-				echo "CUR=${CUR_REV}"
 				if [ "${CUR_REV}" != "" ]; then
 					git -C ${GIT_DIR} checkout ${CUR_REV} 2>/dev/null || exit 1;
 				fi
 			fi
 
-			#GIT_DIR="${DEST_BASE}/dl/${DEP_NAME}";
-			#if [ ! -e ${GIT_DIR} ]; then
-			#	git clone --depth 1 $GIT_PATH ${GIT_DIR} || exit 1;
-			#	HEAD=`git -C ${GIT_DIR} rev-parse HEAD` || exit 1;
-			#	CUR_REV=`${FAM_BASE}/bin/locktoml ${GIT_DIR} ${DEP_NAME} ${HEAD}` 
-			#	if [ "${CUR_REV}" != "" ]; then
-			#		git checkout ${CUR_REV} || exit 1;
-			#	fi      
-			#fi
-
-
-			#GIT_COMMAND="git clone --depth 1 $GIT_PATH ${DEST_BASE}/dl/${DEP_NAME}"
-			#if [ ! -e ${DEST_BASE}/dl/${DEP_NAME} ]; then
-				#${GIT_COMMAND} || exit 1;
-				#if [ "" != "$GIT_COMMIT" ]; then
-				#	git -C "${DEST_BASE}/dl/${DEP_NAME}" checkout "${GIT_COMMIT}" >/dev/null 2>&1
-				#else
-				#	echo "Error: commit must be specified: ${DEP_NAME}";
-				#	exit 1;
-				#fi
-			#fi
 			CONFIG_PATH="${DEST_BASE}/dl/${DEP_NAME}"
 			DEP_PATH="${CONFIG_PATH}"
 		else
