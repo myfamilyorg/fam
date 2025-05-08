@@ -45,7 +45,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 				touch ${FAM_LOCK}
 				CUR_REV=`${FAM_BASE}/bin/locktoml ${FAM_LOCK} ${DEP_NAME} ${HEAD}`
 				if [ "${CUR_REV}" != "" ]; then
-					git -C ${GIT_DIR} checkout ${CUR_REV} 2>/dev/null || exit 1;
+					git -C ${GIT_DIR} checkout ${CUR_REV} > /dev/null 2>&1 || exit 1;
 				fi
 			fi
 
