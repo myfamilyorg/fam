@@ -102,6 +102,7 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			EXT=rlib;
 			CT="lib";
 			PANIC_ABORT="-C panic=abort"
+			SUPRESS_WARNINGS=
 		elif [ "${CRATE_TYPE}" = "proc-macro" ]; then
 			OS=$(uname -s)
 			if [ "$OS" = "Darwin" ]; then
@@ -111,18 +112,21 @@ if [ ! -e ${DEST_BASE}/${SHASUM}/complete ]; then
 			fi
 			if ${RUSTC} --version | grep -q "mrustc"; then
 				EXT=rlib
+				SUPRESS_WARNINGS=
 			else
 				EXT=${MACRO_EXT};
+				SUPRESS_WARNINGS="-A warnings"
 			fi
 
 			CT="proc-macro";
 			PANIC_ABORT=""
 		else
+			SUPRESS_WARNINGS=
 			PANIC_ABORT="-C panic=abort"
 			EXT=rlib;
 			CT="lib"
 		fi
-		COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.${EXT} ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs"
+		COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DEST_BASE}/rlibs/lib${CRATE_NAME}.${EXT} ${DEP_RLIBS} ${DEST_PATH}/rust/lib.rs -L${DEST_BASE}/rlibs ${SUPRESS_WARNINGS}"
         	echo ${COMMAND}
         	${COMMAND} || exit 1;
 		#cp ${DEST_BASE}/${SHASUM}/objs/lib${CRATE_NAME}.rlib ${DEST_BASE}/rlibs
