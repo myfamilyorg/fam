@@ -36,7 +36,12 @@ fn panic_impl() {}
 use core::panic::PanicInfo;
 #[panic_handler]
 fn fam_panic(_info: &PanicInfo) -> ! {
-        loop {}
+	unsafe {
+		let s = "Panic occurred! Halting!\n";
+		ffi::write(2, s.as_ptr(), s.len());
+		ffi::exit(-1);
+		loop {}
+	}
 }
 #[no_mangle]
 fn rust_eh_personality() {}
