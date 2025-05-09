@@ -22,7 +22,6 @@ do
 
 	if [ "${DEP_METHOD}" = "git" ]; then
 		GIT_PATH=`${FAM_BASE}/scripts/dep_path.sh ${TOML} ${i}` || exit 1;
-		#GIT_COMMIT=$(echo "$GIT_PATH" | cut -d'#' -f2)
 		GIT_PATH=$(echo "$GIT_PATH" | cut -d'#' -f1)
 		GIT_DIR="${DIRECTORY}/target/deps/dl/${DEP_NAME}";
 		if [ ! -e ${GIT_DIR} ]; then

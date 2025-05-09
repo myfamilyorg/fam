@@ -9,6 +9,7 @@ DIRECTORY="`pwd`"
 
 export CC=clang
 export RUSTC=rustc
+export CFG_TEST=0
 COUNT=0;
 
 for arg in "$@"; do
@@ -69,6 +70,9 @@ for arg in "$@"; do
                                 echo "Error: -d requires a non-empty value: -d=/path/to/project" >&2
                                 exit 1;
                         fi
+		;;
+		--enable-tests)
+			export CFG_TEST=1
 		;;
 		-d)
 			echo "Error: -d requires a non-empty value: -d=/path/to/project" >&2
