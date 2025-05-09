@@ -126,7 +126,12 @@ if [ ${NEED_UPDATE} -eq 1 ]; then
 		EXT=rlib
 	fi
 
-	COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs ${SUPRESS_WARNINGS}"
+	if [ "${CFG_TEST}" = 1 ]; then
+		#  rustc -C panic=abort -o /Users/christophergilliard/projects/std/error/target/out/test --test /Users/christophergilliard/projects/std/error/rust/lib.rs -L/Users/christophergilliard/projects/std/error/target/deps/rlibs -Zpanic_abort_tests
+		COMMAND="rustc -C panic=abort -Zpanic_abort_tests -o ${DIRECTORY}/target/out/test --test ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs"
+	else
+		COMMAND="${RUSTC} ${PANIC_ABORT} ${RUSTEXTRA} --crate-name=${CRATE_NAME} --crate-type=${CT} -o ${DIRECTORY}/target/objs/lib${CRATE_NAME}.${EXT} ${EXTERN_FLAGS} ${DIRECTORY}/rust/lib.rs -L${DIRECTORY}/target/deps/rlibs ${SUPRESS_WARNINGS}"
+	fi
 
 
 	echo ${COMMAND}
