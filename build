@@ -1,2 +1,26 @@
 #!/bin/sh
 
+CC=clang
+CCFLAGS="-O3"
+BIN_NAME=famparse
+
+if [ "$1" = "clean" ]; then
+    COMMAND="rm -rf .obj/*.o bin/*"
+    echo ${COMMAND}
+    ${COMMAND} || exit 1;
+elif [ "$1" = "all" ] || [ "$1" = "" ]; then
+    cd c
+    for file in *.c
+    do
+        if [ ! -e ../.obj/${file%.c}.o ] || [ ${file} -nt ../.obj/${file%.c}.o ]; then
+            COMMAND=" ${CC} ${CCFLAGS} -o ../.obj/${file%.c}.o -c ${file}"
+            echo ${COMMAND}
+            ${COMMAND} || exit 1;
+        fi
+    done
+    cd ..
+
+    COMMAND="${CC} ${CCFLAGS} -o bin/${BIN_NAME} .obj/*.o"
+    echo ${COMMAND}
+    ${COMMAND} || exit 1;
+fi
