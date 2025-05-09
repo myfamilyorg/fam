@@ -34,12 +34,13 @@ extern crate ${CRATE_NAME};
 #[no_mangle]
 fn panic_impl() {}
 use core::panic::PanicInfo;
+extern "C" { fn write(fd: i32, buf: *const u8, len: usize) -> i32; fn exit(code: i32); }
 #[panic_handler]
 fn fam_panic(_info: &PanicInfo) -> ! {
 	unsafe {
 		let s = "Panic occurred! Halting!\n";
-		ffi::write(2, s.as_ptr(), s.len());
-		ffi::exit(-1);
+		write(2, s.as_ptr(), s.len());
+		exit(-1);
 		loop {}
 	}
 }
