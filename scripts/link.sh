@@ -50,9 +50,9 @@ EOM
     C_OUTPUT=${DIRECTORY}/target/lib
     compile_c "$@"
 
-    RUSTC_OUT=${DIRECTORY}/target/lib/${BUILD_CRATE_NAME}.o
+    RUSTC_OUT=${DIRECTORY}/target/lib/${BUILD_CRATE_NAME}${OBJ_EXT}
     RUSTC_SRC=${DIRECTORY}/target/deps
-    RUSTC_CRATE_TYPE=staticlib
+    RUSTC_CRATE_TYPE=${LINK_LIB}
     RUSTC_CRATE_NAME=${BUILD_CRATE_NAME}_link
     RUSTC_EXTERN="--extern ${BUILD_CRATE_NAME}=${DIRECTORY}/target/lib/lib${BUILD_CRATE_NAME}.rlib"
     RUSTC_LIBS=-L${DIRECTORY}/target/lib

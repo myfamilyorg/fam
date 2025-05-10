@@ -8,6 +8,8 @@ parse_args() {
     COMMAND_SET="0";
     DIRECTORY="`pwd`";
     VERBOSE=0;
+    RUSTC=rustc;
+    LINK_LIB=staticlib;
 
     dir_set=0;
     exp_dir=0;
@@ -63,6 +65,9 @@ parse_args() {
 		fi
                 exp_dir=1;
             ;;
+            --rustc=*)
+                RUSTC=${arg#*=};
+            ;;
             --verbose)
                 VERBOSE=1;
             ;;
@@ -74,6 +79,13 @@ parse_args() {
         esac
     done
 
+    if ${RUSTC} --version | grep -q "mrustc"; then
+        LINK_LIB=lib
+	OBJ_EXT=""
+    else
+        LINK_LIB=staticlib;
+	OBJ_EXT=".o"
+    fi
     if [ "${COMMAND_SET}" = "0" ]; then
 	    ALL=1
     fi

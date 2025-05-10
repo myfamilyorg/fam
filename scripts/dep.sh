@@ -45,7 +45,6 @@ fam_dep() {
     compile_c "$@"
 
     # Compile rust
-    RUSTC="rustc";
     RUSTC_OUT="${DEP_OUTPUT_RLIBS}/lib${LOCAL_CRATE_NAME}.rlib";
     RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/src";
     RUSTC_CRATE_TYPE="lib";

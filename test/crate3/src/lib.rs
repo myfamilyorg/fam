@@ -1,9 +1,9 @@
 #![no_std]
 
-extern "C" {
-    fn my_fun() -> i32;
+pub fn real_main(_argc: i32, _argv: *const *const i8) -> i32 {
+    30
 }
 
 pub fn do_other_stuff() -> i32 {
-    unsafe { my_fun() }
+    100
 }

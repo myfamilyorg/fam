@@ -29,7 +29,7 @@ fam_dep
 fam_link "$@"
 COMMAND="${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} \
 ${C_ARCHIVE_LINKS} \
-${DIRECTORY}/target/lib/${BUILD_CRATE_NAME}.o \
+${DIRECTORY}/target/lib/*.o \
 -L${DIRECTORY}/target/lib"
 
 if [ "${VERBOSE}" = "1" ]; then
