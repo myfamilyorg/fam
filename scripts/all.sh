@@ -23,6 +23,7 @@ DEP_OUTPUT_RLIBS=${DIRECTORY}/target/lib
 DEP_OUTPUT_OBJS=${DIRECTORY}/target/lib
 DEPS_BASE_DIR=${DIRECTORY}/target/deps
 C_ARCHIVE_LINKS="";
+DEPTH=0;
 fam_dep
 
 # Link lib/archives

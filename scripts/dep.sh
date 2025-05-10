@@ -5,18 +5,20 @@ fam_dep() {
     parse_toml
     local LOCAL_CRATE_NAME=${CRATE_NAME};
     local LOCAL_DEP_LOCAL_BASE=${DEP_LOCAL_BASE};
-    local LOCAL_CRATE_DEP_COUNT=${CRATE_DEP_COUNT};
-    local LOCAL_DEP_NAMES=${DEP_NAMES};
-    local LOCAL_DEP_LOCATIONS=${DEP_LOCATIONS};
+    local LOCAL_CRATE_DEP_COUNT[$DEPTH]=${CRATE_DEP_COUNT};
+    local LOCAL_DEP_SUMMARY[$DEPTH]=${DEP_SUMMARY};
     local LOCAL_EXTERN="";
- 
 
     # Handle dependencies
     local i=1;
-    while [ $i -le ${LOCAL_CRATE_DEP_COUNT} ]; do
-	    local INDEX=`expr $i - 1`;
-	    local CRATE=${LOCAL_DEP_NAMES[$INDEX]};
-	    local LOC=${LOCAL_DEP_LOCATIONS[$INDEX]};
+    while [ $i -le ${LOCAL_CRATE_DEP_COUNT[$DEPTH]} ]; do
+	    local itt=$i
+	    local INDEX=`expr $itt - 1`;
+	    local SUMMARY=${LOCAL_DEP_SUMMARY[$DEPTH]};
+	    local CRATE_INDEX=`expr 1 + $INDEX \* 3`;
+	    local LOC_INDEX=`expr 3 + $INDEX \* 3`;
+	    local CRATE=$(echo "${SUMMARY}" | cut -d ' ' -f $CRATE_INDEX)
+	    local LOC=$(echo "${SUMMARY}" | cut -d ' ' -f $LOC_INDEX)
 
 	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
 	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
@@ -32,9 +34,11 @@ fam_dep() {
 
 	    LOCAL_EXTERN="--extern ${CRATE}=${DEP_OUTPUT_RLIBS}/lib${CRATE}.rlib  ${LOCAL_EXTERN}";
 	    DEP_LOCAL_BASE=${DEPS_BASE_DIR}/$CRATE
+	    DEPTH=$((DEPTH + 1));
 	    fam_dep
+	    DEPTH=$((DEPTH - 1))
 		
-	    i=`expr $i + 1`;
+	    i=`expr $itt + 1`;
     done
 
     # Compile c

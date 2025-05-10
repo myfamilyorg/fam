@@ -30,6 +30,7 @@ parse_toml() {
     fi
 
     i=1;
+    DEP_SUMMARY="";
     while [ "$i" -le ${CRATE_DEP_COUNT} ]
     do
         index=`expr $i - 1`;
@@ -59,6 +60,11 @@ parse_toml() {
             DEP_LOCATIONS[$index]="${LOCATION}"
             DEP_TAGS[$index]=""
         fi
+	if [ $i -eq 1 ]; then
+            DEP_SUMMARY="${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}"
+        else
+            DEP_SUMMARY="${DEP_SUMMARY} ${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}"
+	fi
 
         i=`expr $i + 1`;
     done
