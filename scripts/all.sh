@@ -37,7 +37,7 @@ if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
         SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
     fi
 else
-    FINAL_OUTPUT="${DIRECTORY}/target/out/${CRATE_NAME}"
+    FINAL_OUTPUT="${DIRECTORY}/target/out/${BUILD_CRATE_NAME}"
     SHARED=
 fi
 

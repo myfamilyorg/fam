@@ -1,5 +1,5 @@
 [crate]
-	lib = "crate1"
+	bin = "crate1"
 [deps]
 	crate2 = { path = "../crate2" }
 	ffi = { git = "https://github.com/myfamilyorg/ffi" }
