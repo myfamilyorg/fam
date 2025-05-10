@@ -57,6 +57,14 @@ fam_dep() {
                     fi
 		    GIT_COMMIT=`${COMMAND}`;
 
+		    echo "[deps]" > ${LOCAL_DEP_LOCAL_BASE}/fam.lock || exit 1;
+		    COMMAND="${FAM_BASE}/bin/famparse lock ${LOCAL_DEP_LOCAL_BASE}/fam.lock ${CRATE} ${GIT_COMMIT}";
+		    if [ "${VERBOSE}" = "1" ]; then
+		        echo "$COMMAND";
+		    fi
+		    ${COMMAND} || exit 1;
+
+
                     COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q"
 		    if [ "${VERBOSE}" = "1" ]; then
                         echo $COMMAND;
