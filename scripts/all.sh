@@ -28,13 +28,26 @@ fam_dep
 # Link lib/archives
 fam_link "$@"
 
+if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
+    if [ "$(uname -s)" = "Linux" ]; then
+        FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.so"
+        SHARED=-shared
+    elif [ "$(uname -s)" = "Darwin" ]; then
+        FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.dylib"
+        SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
+    fi
+else
+    FINAL_OUTPUT="${DIRECTORY}/target/out/${CRATE_NAME}"
+    SHARED=
+fi
+
 # Final build
-COMMAND="${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} \
+COMMAND="${CC} ${SHARED} -o ${FINAL_OUTPUT} \
 ${C_ARCHIVE_LINKS} \
 ${DIRECTORY}/target/lib/*.o \
 -L${DIRECTORY}/target/lib"
 
 if [ "${VERBOSE}" = "1" ]; then
-	echo ${COMMAND}
+    echo ${COMMAND}
 fi
 ${COMMAND} || exit 1;

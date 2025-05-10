@@ -6,6 +6,7 @@ use crate2::do_stuff;
 #[allow(dead_code)]
 extern "C" {
     fn fff() -> i32;
+    fn exit(code: i32);
 }
 
 //#[no_mangle]

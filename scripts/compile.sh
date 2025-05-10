@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ${FAM_BASE}/scripts/color.sh
+
 compile_rust() {
     NEED_UPDATE=0;
     if [ -e ${RUSTC_SRC} ]; then
@@ -13,6 +15,7 @@ compile_rust() {
     fi
 
     if [ "${NEED_UPDATE}" = "1" ]; then
+        printf "${GREEN}Compiling${RESET}   Crate ${RUSTC_CRATE_NAME}\n"
         COMMAND="${RUSTC} \
 -C panic=abort \
 --crate-name=${RUSTC_CRATE_NAME} \
@@ -43,6 +46,7 @@ compile_c() {
     done
 
     if [ "${NEED_UPDATE}" = "1" ]; then
+        printf "${GREEN}Compiling${RESET}   C Archive ${C_ARCHIVE}\n"
         TMP_DIR=${C_OUTPUT}/${C_ARCHIVE}.tmp
         mkdir -p ${TMP_DIR}
         for file in ${C_DIRECTORY}/*.c

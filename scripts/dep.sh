@@ -37,9 +37,12 @@ fam_dep() {
             else
                 GIT_DIR="${DEPS_BASE_DIR}/$CRATE";
 		if [ ! -e $GIT_DIR ]; then
-                    COMMAND="git clone $LOC $GIT_DIR";
-                    echo $COMMAND;
-		    ${COMMAND}
+                    printf "${CYAN}Downloading${RESET} $CRATE\n";
+                    COMMAND="git clone $LOC $GIT_DIR -q";
+		    if [ "${VERBOSE}" = "1" ]; then
+                        echo $COMMAND;
+		    fi
+		    ${COMMAND} || exit 1;
 	        else
 			break;
 		fi
