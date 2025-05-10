@@ -15,22 +15,21 @@ BUILD_CRATE_TYPE=${CRATE_TYPE};
 # Setup target directory
 mkdir -p ${DIRECTORY}/target/out
 mkdir -p ${DIRECTORY}/target/rlibs
-mkdir -p ${DIRECTORY}/target/objs
-mkdir -p ${DIRECTORY}/target/src
 mkdir -p ${DIRECTORY}/target/deps
 
 # Compile deps
 DEP_LOCAL_BASE=${DIRECTORY}
 DEP_OUTPUT_RLIBS=${DIRECTORY}/target/rlibs
-DEP_OUTPUT_OBJS=${DIRECTORY}/target/objs
+DEP_OUTPUT_OBJS=${DIRECTORY}/target/rlibs
 DEPS_BASE_DIR=${DIRECTORY}/target/deps
+C_ARCHIVE_LINKS="";
 fam_dep
 
 # Link rlibs/archives
 fam_link "$@"
 COMMAND="${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} \
--l${BUILD_CRATE_NAME}_link \
--l${BUILD_CRATE_NAME} ${DIRECTORY}/target/objs/${BUILD_CRATE_NAME}.o \
+${C_ARCHIVE_LINKS} \
+${DIRECTORY}/target/rlibs/${BUILD_CRATE_NAME}.o \
 -L${DIRECTORY}/target/rlibs"
 
 if [ "${VERBOSE}" = "1" ]; then

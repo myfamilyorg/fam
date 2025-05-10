@@ -1,1 +1,1 @@
-int fff() { return 4; }
+int fff() { return 99; }

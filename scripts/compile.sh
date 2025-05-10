@@ -34,6 +34,7 @@ compile_c() {
     for file in ${C_DIRECTORY}/*.c
     do
 	    if [ -f "${file}" ]; then
+		    C_ARCHIVE_LINKS="-l${C_ARCHIVE} ${C_ARCHIVE_LINKS}";
 		    if [ ! -e ${ARCHIVE_FILE} ] || [ ${file} -nt ${ARCHIVE_FILE} ]; then
 			    NEED_UPDATE=1;
 			    break;
