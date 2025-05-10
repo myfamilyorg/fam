@@ -28,6 +28,8 @@ EOM
 pub use ${BUILD_CRATE_NAME}::real_main;
 #[no_mangle]
 pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
+#[no_mangle]
+pub fn main() -> i32 { 0 }
 EOM
 else
 	cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
@@ -36,13 +38,6 @@ pub extern "C" fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0
 EOM
     fi
 
-
-    cat << EOM >> ${DIRECTORY}/target/deps/link.c
-extern int real_main_impl(int, char **);
-int main(int argc, char **argv) {
-    return real_main_impl(argc, argv);
-}
-EOM
 
     C_DIRECTORY=${DIRECTORY}/target/deps
     C_ARCHIVE=${BUILD_CRATE_NAME}_link
