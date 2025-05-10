@@ -26,7 +26,11 @@ fam_dep() {
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
 
-		LOC_CPY="${DIRECTORY}/${LOC}";
+		if [[ "${LOC}" == /* ]]; then
+                    LOC_CPY="${LOC}";
+		else
+		    LOC_CPY="${DIRECTORY}/${LOC}";
+		fi
 
                 if [ -d "${LOC_CPY}/c" ]; then
                     if ls ${LOC_CPY}/c/* >/dev/null 2>&1; then
