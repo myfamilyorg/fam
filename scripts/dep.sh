@@ -1,11 +1,5 @@
 #!/bin/bash
 
-
-#DEP_LOCAL_BASE=${DIRECTORY}
-#DEP_OUTPUT_RLIBS=${DIRECTORY}/target/rlibs
-#DEP_OUTPUT_OBJS=${DIRECTORY}/target/objs
-#DEPS_BASE_DIR=${DIRECTORY}/target/deps
-
 fam_dep() {
     TOML_FILE="${DEP_LOCAL_BASE}/fam.toml";
     parse_toml
@@ -44,7 +38,8 @@ fam_dep() {
     CC=clang
     VERBOSE=1
     C_DIRECTORY="${LOCAL_DEP_LOCAL_BASE}/c";
-    C_OUTPUT="${DEP_OUTPUT_OBJS}";
+    C_ARCHIVE="${LOCAL_CRATE_NAME}";
+    C_OUTPUT="${DEP_OUTPUT_RLIBS}";
     compile_c "$@"
 
     # Compile rust

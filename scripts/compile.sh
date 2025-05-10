@@ -5,10 +5,10 @@ compile_rust() {
     if [ -e ${RUSTC_SRC} ]; then
         for file in `find ${RUSTC_SRC} | grep "\.rs$"`
         do
-                if [ ! -e ${RUSTC_OUT} ] || [ ${file} -nt ${RUSTC_OUT} ]; then
-                        NEED_UPDATE=1;
-                        break;
-                fi
+            if [ ! -e ${RUSTC_OUT} ] || [ ${file} -nt ${RUSTC_OUT} ]; then
+                NEED_UPDATE=1;
+                break;
+            fi
         done
 fi
 
@@ -29,18 +29,39 @@ ${RUSTC_LIBS}";
 }
 
 compile_c() {
+    ARCHIVE_FILE="${C_OUTPUT}/lib${C_ARCHIVE}.a";
+    NEED_UPDATE=0;
     for file in ${C_DIRECTORY}/*.c
     do
-        if [ -f "${file}" ]; then
-            BASENAME=$(basename "$file" .c);
-            OBJ=${C_OUTPUT}/${BASENAME}.o;
-            if [ ! -e ${OBJ} ] || [ ${file} -nt ${OBJ} ]; then
-                COMMAND="${CC} ${CCFLAGS} -o ${OBJ} -c ${file}";
+	    if [ -f "${file}" ]; then
+		    if [ ! -e ${ARCHIVE_FILE} ] || [ ${file} -nt ${ARCHIVE_FILE} ]; then
+			    NEED_UPDATE=1;
+			    break;
+		    fi
+	    fi
+    done
+
+    if [ "${NEED_UPDATE}" = "1" ]; then
+        TMP_DIR=${C_OUTPUT}/${C_ARCHIVE}.tmp
+        mkdir -p ${TMP_DIR}
+        for file in ${C_DIRECTORY}/*.c
+        do
+            if [ -f "${file}" ]; then
+                BASENAME=$(basename "$file" .c);
+                OBJ=${C_DIRECTORY}/${BASENAME}.o
+                COMMAND="${CC} ${CCFLAGS} -o ${TMP_DIR}/${BASENAME}.o -c ${file}";
                 if [ "${VERBOSE}" = "1" ]; then
-                    echo ${COMMAND}
+                    echo "${COMMAND}"
                 fi
 		${COMMAND}
-            fi
+	    fi
+        done
+
+        COMMAND="ar rcs ${C_OUTPUT}/lib${C_ARCHIVE}.a ${TMP_DIR}/*.o";
+	if [ "${VERBOSE}" = "1" ]; then
+        	echo ${COMMAND};
 	fi
-    done
+        ${COMMAND} || exit 1;
+        rm -rf ${TMP_DIR}
+    fi
 }

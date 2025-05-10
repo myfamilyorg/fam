@@ -26,5 +26,14 @@ DEP_OUTPUT_OBJS=${DIRECTORY}/target/objs
 DEPS_BASE_DIR=${DIRECTORY}/target/deps
 fam_dep
 
+# Link rlibs/archives
 fam_link "$@"
-${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} ${DIRECTORY}/target/objs/*
+COMMAND="${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} \
+-l${BUILD_CRATE_NAME}_link \
+-l${BUILD_CRATE_NAME} ${DIRECTORY}/target/objs/${BUILD_CRATE_NAME}.o \
+-L${DIRECTORY}/target/rlibs"
+
+if [ "${VERBOSE}" = "1" ]; then
+	echo ${COMMAND}
+fi
+${COMMAND} || exit 1;

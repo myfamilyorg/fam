@@ -47,7 +47,8 @@ EOM
     CC=clang
     VERBOSE=1
     C_DIRECTORY=${DIRECTORY}/target/src
-    C_OUTPUT=${DIRECTORY}/target/objs
+    C_ARCHIVE=${BUILD_CRATE_NAME}_link
+    C_OUTPUT=${DIRECTORY}/target/rlibs
     compile_c "$@"
 
     RUSTC_OUT=${DIRECTORY}/target/objs/${BUILD_CRATE_NAME}.o
