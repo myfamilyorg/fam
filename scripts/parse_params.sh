@@ -10,6 +10,8 @@ parse_args() {
     VERBOSE=0;
     RUSTC=rustc;
     LINK_LIB=staticlib;
+    export CC=clang
+    CCFLAGS="-O3 -flto"
 
     dir_set=0;
     exp_dir=0;
@@ -65,8 +67,18 @@ parse_args() {
 		fi
                 exp_dir=1;
             ;;
+            --cc=*)
+                export CC=${arg#*=};
+            ;;
             --rustc=*)
                 RUSTC=${arg#*=};
+            ;;
+            --ccflags=*)
+                CCFLAGS=${arg#*=};
+            ;;
+            --rustflags=*)
+		RUSTFLAGSSET=1
+                RUSTFLAGS=${arg#*=};
             ;;
             --verbose)
                 VERBOSE=1;
@@ -80,9 +92,15 @@ parse_args() {
     done
 
     if ${RUSTC} --version | grep -q "mrustc"; then
+        if [ "$RUSTFLAGSSET" = "" ]; then
+            RUSTFLAGS="-O"
+	fi
         LINK_LIB=lib
 	OBJ_EXT=""
     else
+	if [ "$RUSTFLAGSSET" = "" ]; then
+            RUSTFLAGS="-C opt-level=3"
+        fi  
         LINK_LIB=staticlib;
 	OBJ_EXT=".o"
     fi

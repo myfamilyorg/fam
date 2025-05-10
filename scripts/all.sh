@@ -31,10 +31,10 @@ fam_link "$@"
 if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
     if [ "$(uname -s)" = "Linux" ]; then
         FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.so"
-        SHARED=-shared
+        SHARED="-static -shared"
     elif [ "$(uname -s)" = "Darwin" ]; then
         FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.dylib"
-        SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
+        SHARED="-static -dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
     else
         echo "Supported platforms [Linux, Darwin]. $(uname -s) is current not supported.";
 	exit 1;
@@ -52,7 +52,7 @@ else
 fi
 
 # Final build
-COMMAND="${CC} ${SHARED} -o ${FINAL_OUTPUT} \
+COMMAND="${CC} ${CCFLAGS} ${SHARED} -o ${FINAL_OUTPUT} \
 ${C_ARCHIVE_LINKS} \
 ${DIRECTORY}/target/lib/*.o \
 -L${DIRECTORY}/target/lib"

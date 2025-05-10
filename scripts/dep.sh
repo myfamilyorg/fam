@@ -26,14 +26,16 @@ fam_dep() {
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
 
-                if [ -d "${LOC}/c" ]; then
-                    if ls ${LOC}/c/* >/dev/null 2>&1; then
-                        cp -rp ${LOC}/c/* ${DEPS_BASE_DIR}/${CRATE}/c || exit 1
+		LOC_CPY="${DIRECTORY}/${LOC}";
+
+                if [ -d "${LOC_CPY}/c" ]; then
+                    if ls ${LOC_CPY}/c/* >/dev/null 2>&1; then
+                        cp -rp ${LOC_CPY}/c/* ${DEPS_BASE_DIR}/${CRATE}/c || exit 1
                     fi
                 fi
 
-	        cp -rp $LOC/src/* ${DEPS_BASE_DIR}/$CRATE/src || exit 1;
-	        cp -rp $LOC/fam.* ${DEPS_BASE_DIR}/$CRATE/ || exit 1;
+	        cp -rp $LOC_CPY/src/* ${DEPS_BASE_DIR}/$CRATE/src || exit 1;
+	        cp -rp $LOC_CPY/fam.* ${DEPS_BASE_DIR}/$CRATE/ || exit 1;
             else
                 GIT_DIR="${DEPS_BASE_DIR}/$CRATE";
 		if [ ! -e $GIT_DIR ]; then
@@ -58,7 +60,6 @@ fam_dep() {
     done
 
     # Compile c
-    CC=clang
     C_DIRECTORY="${LOCAL_DEP_LOCAL_BASE}/c";
     C_ARCHIVE="${LOCAL_CRATE_NAME}";
     C_OUTPUT="${DEP_OUTPUT_LIBS}";

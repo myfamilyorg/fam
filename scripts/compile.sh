@@ -18,6 +18,7 @@ compile_rust() {
         printf "${GREEN}Compiling${RESET}   Crate ${RUSTC_CRATE_NAME}\n"
         COMMAND="${RUSTC} \
 -C panic=abort \
+${RUSTFLAGS} \
 --crate-name=${RUSTC_CRATE_NAME} \
 --crate-type=${RUSTC_CRATE_TYPE} \
 -o ${RUSTC_OUT} \
