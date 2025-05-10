@@ -6,11 +6,18 @@
 
 #include "tomlc17.h"
 
+#define PATH_MAX 2048
 #define MAX_OUT_SIZE (1024 * 512)
+
+char fname[PATH_MAX] = {0};
 
 void error(const char *file, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
+
+	if (strlen(fname)) {
+		remove(fname);
+	}
 
 	if (file != NULL) {
 		char *canonical_path = realpath(file, NULL);
@@ -173,22 +180,99 @@ void parse_toml(char *file) {
 	fprintf(stdout, "%s\n", buf);
 }
 
-void parse_lock(char *file) {}
+void parse_lock(const char *file, const char *crate, const char *commit) {
+	FILE *fp = fopen(file, "r");
+	if (!fp) error(file, "fopen");
+	toml_result_t result = toml_parse_file(fp);
+	fclose(fp);
+
+	if (!result.ok)
+		error(file, "toml parse error. message: %s", result.errmsg);
+
+	toml_datum_t deps = toml_table_find(result.toptab, "deps");
+	if (deps.type != TOML_TABLE) {
+		error(file, "[deps] table not found.");
+	}
+
+	const char *res_value = NULL;
+	for (int i = 0; i < deps.u.tab.size; i++) {
+		const char *key = deps.u.tab.key[i];
+		const toml_datum_t value = deps.u.tab.value[i];
+
+		if (value.type != TOML_STRING) {
+			error(file,
+			      "Invalid format found near depdendency %s. "
+			      "Expected "
+			      "format: %s = \"<commit_hash>\"",
+			      key, key);
+		}
+		const char *value_s = value.u.s;
+		if (!strcmp(key, crate)) {
+			res_value = value_s;
+			break;
+		}
+	}
+	if (res_value)
+		printf("%s\n", res_value);
+	else {
+		strcpy(fname, file);
+		strcat(fname, ".tmp");
+		FILE *fp = fopen(fname, "w");
+		if (!fp) error("cannot open specified file - ", file);
+
+		if (fprintf(fp, "[deps]\n") < 0) {
+			error("(1) error writing to file - ", file);
+		}
+
+		if (deps.type == TOML_TABLE) {
+			for (int i = 0; i < deps.u.tab.size; i++) {
+				const char *key = deps.u.tab.key[i];
+				const toml_datum_t value = deps.u.tab.value[i];
+				const char *hash = value.u.s;
+
+				if (fprintf(fp, "\t%s = \"%s\"\n", key, hash) <
+				    0)
+					error("(2) error writing to file - ",
+					      file);
+			}
+		}
+		if (fprintf(fp, "\t%s = \"%s\"\n", crate, commit) < 0)
+			error("(3) error writing to file - ", file);
+		if (fclose(fp) != 0)
+			error("(4) error writing to file - ", file);
+
+		rename(fname, file);
+	}
+}
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
-		error(NULL,
-		      "Usage: tomlparse [mode] [file]\n\
-mode options: toml lock");
-	}
-	if (!strcmp(argv[1], "toml")) {
+		if (argc != 5 || strcmp(argv[1], "lock")) {
+			error(
+			    NULL,
+			    "Usage: tomlparse [mode] [file] <additional params>\n\
+mode options: toml lock\n\
+Examples:\n\
+    tomlparse toml fam.toml\n\
+OR\n\
+    tomlaprse lock fam.lock ffi 8994290152219262d4142d21f0aa2238f835f382\n\
+where ffi is the dependency and 8994290152219262d4142d21f0aa2238f835f382 is the\n\
+commit to set if none are found");
+		} else {
+			parse_lock(argv[2], argv[3], argv[4]);
+		}
+	} else if (!strcmp(argv[1], "toml")) {
 		parse_toml(argv[2]);
-	} else if (!strcmp(argv[1], "lock")) {
-		parse_lock(argv[2]);
 	} else {
 		error(NULL,
-		      "Usage: tomlparse [mode] [file]\n\
-mode options: toml lock");
+		      "Usage: tomlparse [mode] [file] <additional params>\n\
+mode options: toml lock\n\
+Examples:\n\
+    tomlparse toml fam.toml\n\
+OR\n\
+    tomlaprse lock fam.lock ffi 8994290152219262d4142d21f0aa2238f835f382\n\
+where ffi is the dependency and 8994290152219262d4142d21f0aa2238f835f382 is the\n\
+commit to set if none are found");
 	}
 
 	return 0;

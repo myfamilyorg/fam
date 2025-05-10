@@ -44,11 +44,31 @@ fam_dep() {
                 GIT_DIR="${DEPS_BASE_DIR}/$CRATE";
 		if [ ! -e $GIT_DIR ]; then
                     printf "${CYAN}Downloading${RESET} $CRATE\n";
-                    COMMAND="git clone $LOC $GIT_DIR -q";
+
+		    COMMAND="git clone ${LOC} --no-checkout --depth 1 --single-branch ${GIT_DIR} -q"
 		    if [ "${VERBOSE}" = "1" ]; then
                         echo $COMMAND;
-		    fi
+                    fi
 		    ${COMMAND} || exit 1;
+
+		    COMMAND="git -C ${GIT_DIR} rev-parse HEAD";
+		    if [ "${VERBOSE}" = "1" ]; then
+                        echo $COMMAND;
+                    fi
+		    GIT_COMMIT=`${COMMAND}`;
+
+                    COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q"
+		    if [ "${VERBOSE}" = "1" ]; then
+                        echo $COMMAND;
+                    fi
+		    ${COMMAND} || exit 1;
+
+
+		    COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
+		    if [ "${VERBOSE}" = "1" ]; then
+                        echo $COMMAND;
+                    fi
+                    ${COMMAND} || exit 1;
 	        else
 			break;
 		fi
