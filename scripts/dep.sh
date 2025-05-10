@@ -21,9 +21,12 @@ fam_dep() {
 	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
 	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/rust" || exit 1;
 
-	    if [ -e "$LOC/c" ]; then
-	    	cp -rp $LOC/c/* ${DEPS_BASE_DIR}/$CRATE/c || exit 1;
-	    fi
+            if [ -d "${LOC}/c" ]; then
+                if ls ${LOC}/c/* >/dev/null 2>&1; then
+                    cp -rp ${LOC}/c/* ${DEPS_BASE_DIR}/${CRATE}/c || exit 1
+                fi
+            fi
+
 	    cp -rp $LOC/rust/* ${DEPS_BASE_DIR}/$CRATE/rust || exit 1;
 	    cp -rp $LOC/fam.* ${DEPS_BASE_DIR}/$CRATE/ || exit 1;
 
