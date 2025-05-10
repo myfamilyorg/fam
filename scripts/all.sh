@@ -35,10 +35,20 @@ if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
     elif [ "$(uname -s)" = "Darwin" ]; then
         FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.dylib"
         SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
+    else
+        echo "Supported platforms [Linux, Darwin]. $(uname -s) is current not supported.";
+	exit 1;
     fi
 else
     FINAL_OUTPUT="${DIRECTORY}/target/out/${BUILD_CRATE_NAME}"
-    SHARED=
+    if [ "$(uname -s)" = "Linux" ]; then
+        SHARED=-static
+    elif [ "$(uname -s)" = "Darwin" ]; then
+        SHARED=
+    else
+        echo "Supported platforms [Linux, Darwin]. $(uname -s) is current not supported.";
+        exit 1;
+    fi
 fi
 
 # Final build
