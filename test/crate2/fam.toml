@@ -1,0 +1,3 @@
+[crate]
+	lib = "crate2"
+[deps]
