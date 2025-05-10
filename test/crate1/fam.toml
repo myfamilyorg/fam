@@ -2,5 +2,5 @@
 	bin = "crate1"
 [deps]
 	crate2 = { path = "../crate2" }
-	#ffi = { git = "https://github.com/myfamilyorg/ffi" }
-        crate4 = { path = "../crate4" }
+	ffi = { git = "https://github.com/myfamilyorg/ffi" }
+        #crate4 = { path = "../crate4" }

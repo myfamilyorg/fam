@@ -10,7 +10,7 @@ compile_rust() {
                 break;
             fi
         done
-fi
+    fi
 
     if [ "${NEED_UPDATE}" = "1" ]; then
         COMMAND="${RUSTC} \

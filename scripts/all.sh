@@ -19,8 +19,7 @@ mkdir -p ${DIRECTORY}/target/deps
 
 # Compile deps
 DEP_LOCAL_BASE=${DIRECTORY}
-DEP_OUTPUT_RLIBS=${DIRECTORY}/target/lib
-DEP_OUTPUT_OBJS=${DIRECTORY}/target/lib
+DEP_OUTPUT_LIBS=${DIRECTORY}/target/lib
 DEPS_BASE_DIR=${DIRECTORY}/target/deps
 C_ARCHIVE_LINKS="";
 DEPTH=0;
@@ -28,6 +27,8 @@ fam_dep
 
 # Link lib/archives
 fam_link "$@"
+
+# Final build
 COMMAND="${CC} -o ${DIRECTORY}/target/out/${BUILD_CRATE_NAME} \
 ${C_ARCHIVE_LINKS} \
 ${DIRECTORY}/target/lib/*.o \
