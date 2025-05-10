@@ -246,22 +246,9 @@ void parse_lock(const char *file, const char *crate, const char *commit) {
 }
 
 int main(int argc, char **argv) {
-	if (argc != 3) {
-		if (argc != 5 || strcmp(argv[1], "lock")) {
-			error(
-			    NULL,
-			    "Usage: tomlparse [mode] [file] <additional params>\n\
-mode options: toml lock\n\
-Examples:\n\
-    tomlparse toml fam.toml\n\
-OR\n\
-    tomlaprse lock fam.lock ffi 8994290152219262d4142d21f0aa2238f835f382\n\
-where ffi is the dependency and 8994290152219262d4142d21f0aa2238f835f382 is the\n\
-commit to set if none are found");
-		} else {
-			parse_lock(argv[2], argv[3], argv[4]);
-		}
-	} else if (!strcmp(argv[1], "toml")) {
+	if (argc == 5 && !strcmp(argv[1], "lock")) {
+		parse_lock(argv[2], argv[3], argv[4]);
+	} else if (argc == 3 && !strcmp(argv[1], "toml")) {
 		parse_toml(argv[2]);
 	} else {
 		error(NULL,
