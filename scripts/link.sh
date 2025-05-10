@@ -45,7 +45,6 @@ int main(int argc, char **argv) {
 EOM
 
     CC=clang
-    VERBOSE=1
     C_DIRECTORY=${DIRECTORY}/target/deps
     C_ARCHIVE=${BUILD_CRATE_NAME}_link
     C_OUTPUT=${DIRECTORY}/target/lib

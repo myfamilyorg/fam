@@ -3,6 +3,7 @@
 extern crate crate2;
 use crate2::do_stuff;
 
+#[allow(dead_code)]
 extern "C" {
     fn fff() -> i32;
 }

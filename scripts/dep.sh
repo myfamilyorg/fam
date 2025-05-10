@@ -19,7 +19,7 @@ fam_dep() {
 	    local LOC=${LOCAL_DEP_LOCATIONS[$INDEX]};
 
 	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
-	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/rust" || exit 1;
+	    mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
 
             if [ -d "${LOC}/c" ]; then
                 if ls ${LOC}/c/* >/dev/null 2>&1; then
@@ -27,7 +27,7 @@ fam_dep() {
                 fi
             fi
 
-	    cp -rp $LOC/rust/* ${DEPS_BASE_DIR}/$CRATE/rust || exit 1;
+	    cp -rp $LOC/src/* ${DEPS_BASE_DIR}/$CRATE/src || exit 1;
 	    cp -rp $LOC/fam.* ${DEPS_BASE_DIR}/$CRATE/ || exit 1;
 
 	    LOCAL_EXTERN="--extern ${CRATE}=${DEP_OUTPUT_RLIBS}/lib${CRATE}.rlib  ${LOCAL_EXTERN}";
@@ -39,7 +39,6 @@ fam_dep() {
 
     # Compile c
     CC=clang
-    VERBOSE=1
     C_DIRECTORY="${LOCAL_DEP_LOCAL_BASE}/c";
     C_ARCHIVE="${LOCAL_CRATE_NAME}";
     C_OUTPUT="${DEP_OUTPUT_RLIBS}";
@@ -48,11 +47,10 @@ fam_dep() {
     # Compile rust
     RUSTC="rustc";
     RUSTC_OUT="${DEP_OUTPUT_RLIBS}/lib${LOCAL_CRATE_NAME}.rlib";
-    RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/rust";
+    RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/src";
     RUSTC_CRATE_TYPE="lib";
     RUSTC_CRATE_NAME="${LOCAL_CRATE_NAME}";
     RUSTC_EXTERN="${LOCAL_EXTERN}";
     RUSTC_LIBS="-L${DEP_OUTPUT_RLIBS}";
-    VERBOSE=1
     compile_rust "$@"
 }

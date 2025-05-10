@@ -7,6 +7,7 @@ parse_args() {
     TEST=0
     COMMAND_SET="0";
     DIRECTORY="`pwd`";
+    VERBOSE=0;
 
     dir_set=0;
     exp_dir=0;
@@ -61,6 +62,9 @@ parse_args() {
 			exit 1;
 		fi
                 exp_dir=1;
+            ;;
+            --verbose)
+                VERBOSE=1;
             ;;
             *)
 		echo "Unexpected param: $arg";
