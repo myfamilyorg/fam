@@ -7,7 +7,6 @@
 #DEPS_BASE_DIR=${DIRECTORY}/target/deps
 
 fam_dep() {
-    DEPTH=`expr ${DEPTH} + 1`;
     TOML_FILE="${DEP_LOCAL_BASE}/fam.toml";
     parse_toml
     local LOCAL_CRATE_NAME=${CRATE_NAME};
@@ -55,8 +54,7 @@ fam_dep() {
     RUSTC_CRATE_TYPE="lib";
     RUSTC_CRATE_NAME="${LOCAL_CRATE_NAME}";
     RUSTC_EXTERN="${LOCAL_EXTERN}";
+    RUSTC_LIBS="-L${DEP_OUTPUT_RLIBS}";
     VERBOSE=1
     compile_rust "$@"
-
-    DEPTH=`expr ${DEPTH} - 1`;
 }

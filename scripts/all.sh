@@ -24,7 +24,6 @@ DEP_LOCAL_BASE=${DIRECTORY}
 DEP_OUTPUT_RLIBS=${DIRECTORY}/target/rlibs
 DEP_OUTPUT_OBJS=${DIRECTORY}/target/objs
 DEPS_BASE_DIR=${DIRECTORY}/target/deps
-DEPTH=0
 fam_dep
 
 fam_link "$@"
