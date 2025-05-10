@@ -61,9 +61,9 @@ parse_toml() {
             DEP_TAGS[$index]=""
         fi
 	if [ $i -eq 1 ]; then
-            DEP_SUMMARY="${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}"
+            DEP_SUMMARY="${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}#${DEP_TAGS[$index]}"
         else
-            DEP_SUMMARY="${DEP_SUMMARY} ${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}"
+            DEP_SUMMARY="${DEP_SUMMARY} ${DEP_NAMES[$index]} ${DEP_TYPES[$index]} ${DEP_LOCATIONS[$index]}#${DEP_TAGS[$index]}"
 	fi
 
         i=`expr $i + 1`;

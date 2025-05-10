@@ -25,6 +25,7 @@ fam_dep() {
 	    if [ "$TYPE" = "path" ]; then
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
 	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
+		LOC="${LOC%%#*}";
 
 		if [[ "${LOC}" == /* ]]; then
                     LOC_CPY="${LOC}";
@@ -45,38 +46,60 @@ fam_dep() {
 		if [ ! -e $GIT_DIR ]; then
                     printf "${CYAN}Downloading${RESET} $CRATE\n";
 
-		    COMMAND="git clone ${LOC} --no-checkout --depth 1 --single-branch ${GIT_DIR} -q"
+                    if [[ "${LOC}" == *#* ]]; then
+                        GIT_URL="${LOC%%#*}"
+                        TAG="${LOC#*#}"
+                    else
+                        GIT_URL="${LOC}"
+                        TAG=""
+                    fi
+
+		    COMMAND="git clone ${GIT_URL} --no-checkout --depth 1 --single-branch ${GIT_DIR} -q"
 		    if [ "${VERBOSE}" = "1" ]; then
                         echo $COMMAND;
                     fi
 		    ${COMMAND} || exit 1;
 
-		    COMMAND="git -C ${GIT_DIR} rev-parse HEAD";
-		    if [ "${VERBOSE}" = "1" ]; then
-                        echo $COMMAND;
-                    fi
-		    GIT_COMMIT=`${COMMAND}`;
+		    if [ "${TAG}" = "" ]; then
+		        COMMAND="git -C ${GIT_DIR} rev-parse HEAD";
+		        if [ "${VERBOSE}" = "1" ]; then
+                            echo $COMMAND;
+                        fi
+		        GIT_COMMIT=`${COMMAND}`;
 
-		    echo "[deps]" > ${LOCAL_DEP_LOCAL_BASE}/fam.lock || exit 1;
-		    COMMAND="${FAM_BASE}/bin/famparse lock ${LOCAL_DEP_LOCAL_BASE}/fam.lock ${CRATE} ${GIT_COMMIT}";
-		    if [ "${VERBOSE}" = "1" ]; then
-		        echo "$COMMAND";
+		        echo "[deps]" > ${LOCAL_DEP_LOCAL_BASE}/fam.lock || exit 1;
+		        COMMAND="${FAM_BASE}/bin/famparse lock ${LOCAL_DEP_LOCAL_BASE}/fam.lock ${CRATE} ${GIT_COMMIT}";
+		        if [ "${VERBOSE}" = "1" ]; then
+		            echo "$COMMAND";
+		        fi
+		        ${COMMAND} || exit 1;
+
+
+                        COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q"
+		        if [ "${VERBOSE}" = "1" ]; then
+                            echo $COMMAND;
+                        fi
+		        ${COMMAND} || exit 1;
+
+
+		        COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
+		        if [ "${VERBOSE}" = "1" ]; then
+                            echo $COMMAND;
+                        fi
+                        ${COMMAND} || exit 1;
+                    else
+			COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin refs/tags/${TAG} -q";
+			if [ "${VERBOSE}" = "1" ]; then
+                            echo $COMMAND;
+                        fi
+                        ${COMMAND} || exit 1;
+
+                        COMMAND="git -C ${GIT_DIR} checkout FETCH_HEAD -q";
+			if [ "${VERBOSE}" = "1" ]; then
+                            echo $COMMAND;
+                        fi
+                        ${COMMAND} || exit 1;
 		    fi
-		    ${COMMAND} || exit 1;
-
-
-                    COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q"
-		    if [ "${VERBOSE}" = "1" ]; then
-                        echo $COMMAND;
-                    fi
-		    ${COMMAND} || exit 1;
-
-
-		    COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
-		    if [ "${VERBOSE}" = "1" ]; then
-                        echo $COMMAND;
-                    fi
-                    ${COMMAND} || exit 1;
 	        else
 			break;
 		fi
