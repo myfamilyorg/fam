@@ -121,11 +121,26 @@ fam_dep() {
     compile_c "$@"
 
     # Compile rust
-    RUSTC_OUT="${DEP_OUTPUT_LIBS}/lib${LOCAL_CRATE_NAME}.rlib";
-    RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/src";
-    RUSTC_CRATE_TYPE="lib";
-    RUSTC_CRATE_NAME="${LOCAL_CRATE_NAME}";
-    RUSTC_EXTERN="${LOCAL_EXTERN}";
-    RUSTC_LIBS="-L${DEP_OUTPUT_LIBS}";
-    compile_rust "$@"
+    if [ ${COMPILE_TESTS} -eq 1 ] && [ ${DEPTH} -eq 0 ]; then
+        printf "${GREEN}Compiling${RESET}   Crate ${LOCAL_CRATE_NAME}\n"
+	COMMAND="rustc -C panic=abort \
+-Zpanic_abort_tests \
+-o ${DIRECTORY}/target/lib/test \
+--test ${DIRECTORY}/src/lib.rs \
+${C_ARCHIVE_LINKS} \
+-L ${DIRECTORY}/target/lib \
+-L${DIRECTORY}/target/deps/lib";
+	if [ "${VERBOSE}" = "1" ]; then
+            echo $COMMAND;
+        fi
+	${COMMAND} || exit 1;
+    else
+        RUSTC_OUT="${DEP_OUTPUT_LIBS}/lib${LOCAL_CRATE_NAME}.rlib";
+        RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/src";
+        RUSTC_CRATE_TYPE="lib";
+        RUSTC_CRATE_NAME="${LOCAL_CRATE_NAME}";
+        RUSTC_EXTERN="${LOCAL_EXTERN}";
+        RUSTC_LIBS="-L${DEP_OUTPUT_LIBS}";
+	compile_rust "$@"
+    fi
 }

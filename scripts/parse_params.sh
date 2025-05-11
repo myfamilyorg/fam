@@ -12,6 +12,7 @@ parse_args() {
     LINK_LIB=staticlib;
     export CC=clang
     CCFLAGS="-O3 -flto"
+    COMPILE_TESTS=0
 
     dir_set=0;
     exp_dir=0;
@@ -82,6 +83,9 @@ parse_args() {
             ;;
             --verbose)
                 VERBOSE=1;
+            ;;
+            --test)
+                COMPILE_TESTS=1;
             ;;
             *)
 		echo "Unexpected param: $arg";
