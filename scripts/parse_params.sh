@@ -11,7 +11,7 @@ parse_args() {
     RUSTC=rustc;
     LINK_LIB=staticlib;
     export CC=clang
-    CCFLAGS="-O3 -flto"
+    CCFLAGS="-O3"
     COMPILE_TESTS=0
 
     dir_set=0;
