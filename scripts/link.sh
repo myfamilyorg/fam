@@ -21,22 +21,33 @@ fn fam_panic(_info: &PanicInfo) -> ! {
 }
 #[no_mangle]
 fn rust_eh_personality() {}
-#[no_mangle]
-pub extern "C" fn main(argc: i32, argv: *const *const i8) -> i32 {
-    real_main_impl(argc, argv)
-}
 EOM
 
     if [ "${BUILD_CRATE_TYPE}" = "bin" ]; then
         cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
 pub use ${BUILD_CRATE_NAME}::real_main;
-pub fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
+#[no_mangle]
+pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
 EOM
 else
 	cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
-pub fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0 }
+#[no_mangle]
+pub extern "C" fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0 }
 EOM
     fi
+
+
+    cat << EOM >> ${DIRECTORY}/target/deps/link.c
+extern int real_main_impl(int, char **);
+int main(int argc, char **argv) {
+    return real_main_impl(argc, argv);
+}
+EOM
+
+    C_DIRECTORY=${DIRECTORY}/target/deps
+    C_ARCHIVE=${BUILD_CRATE_NAME}_link
+    C_OUTPUT=${DIRECTORY}/target/lib
+    compile_c "$@"
 
     if [ ${COMPILE_TESTS} -eq 1 ]; then
 	    COMMAND="${RUSTC} \
