@@ -29,7 +29,7 @@ pub use ${BUILD_CRATE_NAME}::real_main;
 #[no_mangle]
 pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { real_main(argc, argv) }
 #[no_mangle]
-pub fn main() -> i32 { 0 }
+pub fn main(argc: i32, argv: *const *const i8) -> () { real_main_impl(argc, argv); }
 EOM
 else
 	cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
@@ -42,6 +42,7 @@ EOM
 	    COMMAND="${RUSTC} \
 -C panic=abort \
 -Zpanic_abort_tests \
+-C debuginfo=2 \
 -o ${DIRECTORY}/target/lib/test \
 --test ${DIRECTORY}/src/lib.rs \
 -L${DIRECTORY}/target/lib \
