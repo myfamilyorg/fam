@@ -31,7 +31,7 @@ fam_link "$@"
 if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
     if [ "$(uname -s)" = "Linux" ]; then
         FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.so"
-        SHARED="-static -shared"
+        SHARED="-shared"
     elif [ "$(uname -s)" = "Darwin" ]; then
         FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.dylib"
         SHARED="-static -dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"

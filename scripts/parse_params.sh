@@ -115,5 +115,5 @@ parse_args() {
 }
 
 usage() {
-	echo "usage: fam [all | test | coverage | clean] <options>";
+	echo "Usage: fam [all | test | coverage | clean] <options>";
 }
