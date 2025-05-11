@@ -35,15 +35,19 @@ ${RUSTC_LIBS}";
 compile_c() {
     ARCHIVE_FILE="${C_OUTPUT}/lib${C_ARCHIVE}.a";
     NEED_UPDATE=0;
+    ARCHIVE_LINK_UPDATED=0;
     for file in ${C_DIRECTORY}/*.c
     do
-	    if [ -f "${file}" ]; then
-		    C_ARCHIVE_LINKS="-l${C_ARCHIVE} ${C_ARCHIVE_LINKS}";
-		    if [ ! -e ${ARCHIVE_FILE} ] || [ ${file} -nt ${ARCHIVE_FILE} ]; then
-			    NEED_UPDATE=1;
-			    break;
-		    fi
-	    fi
+        if [ -f "${file}" ]; then
+            if [ $ARCHIVE_LINK_UPDATED -eq 0 ]; then
+                C_ARCHIVE_LINKS="-l${C_ARCHIVE} ${C_ARCHIVE_LINKS}";
+            fi
+            ARCHIVE_LINK_UPDATED=1;
+            if [ ! -e ${ARCHIVE_FILE} ] || [ ${file} -nt ${ARCHIVE_FILE} ]; then
+                NEED_UPDATE=1;
+                break;
+            fi
+        fi
     done
 
     if [ "${NEED_UPDATE}" = "1" ]; then
