@@ -1,6 +1,12 @@
 #!/bin/bash
 
 fam_link() {
+    if ${RUSTC} --version | grep -q "mrustc"; then
+	    IS_MRUSTC=1;
+    else
+	    IS_MRUSTC=0;
+    fi
+
     rm -f ${DIRECTORY}/target/deps/lib.rs ${DIRECTORY}/target/deps/link.c
     cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
 #![no_std]
@@ -23,6 +29,15 @@ fn fam_panic(_info: &PanicInfo) -> ! {
 fn rust_eh_personality() {}
 EOM
 
+     if [ $IS_MRUSTC -eq 0 ]; then
+         cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
+#[no_mangle]
+pub extern "C" fn main(argc: i32, argv: *const *const i8) -> i32 {
+    real_main_impl(argc, argv)
+}
+EOM
+    fi
+
     if [ "${BUILD_CRATE_TYPE}" = "bin" ]; then
         cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
 pub use ${BUILD_CRATE_NAME}::real_main;
@@ -31,23 +46,24 @@ pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 { rea
 EOM
 else
 	cat << EOM >> ${DIRECTORY}/target/deps/lib.rs
-#[no_mangle]
-pub extern "C" fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0 }
+pub fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0 }
 EOM
     fi
 
-
-    cat << EOM >> ${DIRECTORY}/target/deps/link.c
+    if [ $IS_MRUSTC -eq 1 ]; then
+         cat << EOM >> ${DIRECTORY}/target/deps/link.c
 extern int real_main_impl(int, char **);
 int main(int argc, char **argv) {
     return real_main_impl(argc, argv);
 }
 EOM
 
-    C_DIRECTORY=${DIRECTORY}/target/deps
-    C_ARCHIVE=${BUILD_CRATE_NAME}_link
-    C_OUTPUT=${DIRECTORY}/target/lib
-    compile_c "$@"
+        C_DIRECTORY=${DIRECTORY}/target/deps
+        C_ARCHIVE=${BUILD_CRATE_NAME}_link
+        C_OUTPUT=${DIRECTORY}/target/lib
+        compile_c "$@"
+    fi
+    
 
     if [ ${COMPILE_TESTS} -eq 1 ]; then
 	    COMMAND="${RUSTC} \
@@ -72,3 +88,4 @@ ${C_ARCHIVE_LINKS}";
         compile_rust "$@"
     fi
 }
+
