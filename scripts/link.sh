@@ -38,17 +38,25 @@ pub extern "C" fn real_main_impl(_argc: i32, _argv: *const *const i8) -> i32 { 0
 EOM
     fi
 
-
-    C_DIRECTORY=${DIRECTORY}/target/deps
-    C_ARCHIVE=${BUILD_CRATE_NAME}_link
-    C_OUTPUT=${DIRECTORY}/target/lib
-    compile_c "$@"
-
-    RUSTC_OUT=${DIRECTORY}/target/lib/${BUILD_CRATE_NAME}${OBJ_EXT}
-    RUSTC_SRC=${DIRECTORY}/target/deps
-    RUSTC_CRATE_TYPE=${LINK_LIB}
-    RUSTC_CRATE_NAME=${BUILD_CRATE_NAME}_link
-    RUSTC_EXTERN="--extern ${BUILD_CRATE_NAME}=${DIRECTORY}/target/lib/lib${BUILD_CRATE_NAME}.rlib"
-    RUSTC_LIBS=-L${DIRECTORY}/target/lib
-    compile_rust "$@"
+    if [ ${COMPILE_TESTS} -eq 1 ]; then
+	    COMMAND="${RUSTC} \
+-C panic=abort \
+-Zpanic_abort_tests \
+-o ${DIRECTORY}/target/lib/test \
+--test ${DIRECTORY}/src/lib.rs \
+-L${DIRECTORY}/target/lib \
+${C_ARCHIVE_LINKS}";
+            if [ "${VERBOSE}" = "1" ]; then
+		    echo ${COMMAND};
+	    fi
+	    ${COMMAND} || exit 1;
+    else
+        RUSTC_OUT=${DIRECTORY}/target/lib/${BUILD_CRATE_NAME}${OBJ_EXT}
+        RUSTC_SRC=${DIRECTORY}/target/deps
+        RUSTC_CRATE_TYPE=${LINK_LIB}
+        RUSTC_CRATE_NAME=${BUILD_CRATE_NAME}_link
+        RUSTC_EXTERN="--extern ${BUILD_CRATE_NAME}=${DIRECTORY}/target/lib/lib${BUILD_CRATE_NAME}.rlib"
+        RUSTC_LIBS=-L${DIRECTORY}/target/lib
+        compile_rust "$@"
+    fi
 }

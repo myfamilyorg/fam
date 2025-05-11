@@ -52,12 +52,15 @@ else
 fi
 
 # Final build
-COMMAND="${CC} ${CCFLAGS} ${SHARED} -o ${FINAL_OUTPUT} \
-${C_ARCHIVE_LINKS} \
-${DIRECTORY}/target/lib/*.o \
--L${DIRECTORY}/target/lib"
 
-if [ "${VERBOSE}" = "1" ]; then
-    echo ${COMMAND}
+if [ ${COMPILE_TESTS} -ne 1 ]; then
+    COMMAND="${CC} ${CCFLAGS} ${SHARED} -o ${FINAL_OUTPUT} \
+    ${C_ARCHIVE_LINKS} \
+    ${DIRECTORY}/target/lib/*.o \
+    -L${DIRECTORY}/target/lib"
+
+    if [ "${VERBOSE}" = "1" ]; then
+        echo ${COMMAND}
+    fi
+    ${COMMAND} || exit 1;
 fi
-${COMMAND} || exit 1;
