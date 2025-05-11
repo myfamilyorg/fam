@@ -55,9 +55,9 @@ fi
 
 if [ ${COMPILE_TESTS} -ne 1 ]; then
     COMMAND="${CC} ${CCFLAGS} ${SHARED} -o ${FINAL_OUTPUT} \
-    ${C_ARCHIVE_LINKS} \
     ${DIRECTORY}/target/lib/*.o \
-    -L${DIRECTORY}/target/lib"
+    -L${DIRECTORY}/target/lib \
+    ${C_ARCHIVE_LINKS}"
 
     if [ "${VERBOSE}" = "1" ]; then
         echo ${COMMAND}
