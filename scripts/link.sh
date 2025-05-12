@@ -29,6 +29,7 @@ ${LINK_FLAGS} \
 
 	${COMMAND} || exit 1;
     else
+	    # clang -O3 -flto -shared -o /home/chris/projects/fam/test/crate5/target/out/libcrate5.so -L/home/chris/projects/fam/test/crate5/target/lib -Wl,--whole-archive -lcrate5 -Wl,--no-whole-archive -nodefaultlibs -l
 	if [ "$(uname -s)" = "Linux" ]; then
             FINAL_OUTPUT="${DIRECTORY}/target/out/lib${OUTPUT}.so"
             SHARED="-shared"
@@ -44,8 +45,8 @@ ${LINK_FLAGS} \
 ${CCFLAGS} \
 ${SHARED} \
 -o ${FINAL_OUTPUT} \
--L${DIRECTORY}/target/lib \
-${FLAGS} \
+-L${DIRECTORY}/target/lib -Wl,--whole-archive \
+${FLAGS} -Wl,--no-whole-archive \
 ${LINK_FLAGS}"
 	if [ ${VERBOSE} -eq 1 ]; then
             echo ${COMMAND};
