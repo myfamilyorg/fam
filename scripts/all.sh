@@ -9,6 +9,7 @@
 
 parse_toml "${DIRECTORY}/fam.toml";
 OUTPUT_NAME=${CRATE_NAME};
+OUTPUT_TYPE=${CRATE_TYPE};
 
 mkdir -p ${DIRECTORY}/target/deps;
 mkdir -p ${DIRECTORY}/target/lib;
