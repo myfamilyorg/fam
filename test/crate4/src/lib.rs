@@ -30,3 +30,9 @@ pub extern "C" fn real_main(argc: i32, _argv: *const *const i8) -> i32 {
 #[cfg(not(famc))]
 #[no_mangle]
 fn main() {}
+
+#[link(name = "c")]
+extern "C" {}
+
+#[no_mangle]
+fn rust_eh_personality() {}
