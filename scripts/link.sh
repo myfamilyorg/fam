@@ -15,11 +15,11 @@ link() {
 
     COMMAND="${CC} \
 ${STATIC} \
-${FLAGS} \
-${LINK_FLAGS} \
 ${CCFLAGS} \
 ${FAM_BASE}/resources/fam.c \
 -o ${DIRECTORY}/target/out/${OUTPUT} \
+${FLAGS} \
+${LINK_FLAGS} \
 -L${DIRECTORY}/target/lib \
 -DCRATE_NAME=${OUTPUT}";
     if [ ${VERBOSE} -eq 1 ]; then
