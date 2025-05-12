@@ -29,7 +29,7 @@ compile() {
 		if [ "${VERBOSE}" = "1" ]; then
                     echo "${COMMAND}"
                 fi
-                ${COMMAND}
+                ${COMMAND} || exit 1;
 	    fi
         done
 
