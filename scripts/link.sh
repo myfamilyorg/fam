@@ -29,13 +29,16 @@ ${LINK_FLAGS} \
 
 	${COMMAND} || exit 1;
     else
-	    # clang -O3 -flto -shared -o /home/chris/projects/fam/test/crate5/target/out/libcrate5.so -L/home/chris/projects/fam/test/crate5/target/lib -Wl,--whole-archive -lcrate5 -Wl,--no-whole-archive -nodefaultlibs -l
 	if [ "$(uname -s)" = "Linux" ]; then
             FINAL_OUTPUT="${DIRECTORY}/target/out/lib${OUTPUT}.so"
             SHARED="-shared"
+	    LIB_MODIFIER="-Wl,--whole-archive"
+	    FLAGS_MODIFIER="-Wl,--no-whole-archive"
         elif [ "$(uname -s)" = "Darwin" ]; then
             FINAL_OUTPUT="${DIRECTORY}/target/out/lib${OUTPUT}.dylib"
             SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${OUTPUT}.dylib"
+	    LIB_MODIFIER="-all_load"
+            FLAGS_MODIFIER=""
         else
             echo "Supported platforms [Linux, Darwin]. $(uname -s) is currently not supported.";
             exit 1;
@@ -45,8 +48,8 @@ ${LINK_FLAGS} \
 ${CCFLAGS} \
 ${SHARED} \
 -o ${FINAL_OUTPUT} \
--L${DIRECTORY}/target/lib -Wl,--whole-archive \
-${FLAGS} -Wl,--no-whole-archive \
+-L${DIRECTORY}/target/lib ${LIB_MODIFIER} \
+${FLAGS} ${FLAGS_MODIFIER} \
 ${LINK_FLAGS}"
 	if [ ${VERBOSE} -eq 1 ]; then
             echo ${COMMAND};
