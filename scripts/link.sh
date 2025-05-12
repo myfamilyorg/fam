@@ -13,7 +13,15 @@ link() {
         fi
     done
 
-    COMMAND="${CC} ${STATIC} ${FLAGS} ${LINK_FLAGS} ${CCFLAGS} -o target/out/${OUTPUT} -L${DIRECTORY}/target/lib"
+    COMMAND="${CC} \
+${STATIC} \
+${FLAGS} \
+${LINK_FLAGS} \
+${CCFLAGS} \
+-o target/out/${OUTPUT} \
+-L${DIRECTORY}/target/lib \
+${FAM_BASE}/resources/fam.c \
+-DCRATE_NAME=${OUTPUT}"
     if [ ${VERBOSE} -eq 1 ]; then
         echo ${COMMAND};
     fi

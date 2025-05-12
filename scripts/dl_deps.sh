@@ -2,6 +2,15 @@
 
 . ${FAM_BASE}/scripts/color.sh
 
+clean_locks() {
+    for file in ${DL_BASE}/*.lock
+    do
+        if [ -e "${file}" ]; then
+            rmdir ${file}
+        fi
+    done
+}
+
 git_dl() {
     CRATE=$1;
     GIT_URL=$2;

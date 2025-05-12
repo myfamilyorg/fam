@@ -14,16 +14,7 @@ mkdir -p ${DIRECTORY}/target/deps;
 mkdir -p ${DIRECTORY}/target/lib;
 mkdir -p ${DIRECTORY}/target/out;
 
-DL_BASE="${DIRECTORY}/target/deps"
-dl_deps ${DL_BASE} ${CRATE_DEP_COUNT} ${DEP_SUMMARY} 0;
-for file in ${DL_BASE}/*.lock
-do
-    if [ -e "${file}" ]; then
-        rmdir ${file}
-    fi
-done
-
-DEPS_UPDATED=0;
+dl_deps ${DIRECTORY}/target/deps ${CRATE_DEP_COUNT} ${DEP_SUMMARY} 0;
+clean_locks ${DL_BASE}
 fam_dep ${DIRECTORY} ${DIRECTORY}/target/deps ${DIRECTORY}/target/lib 0
-
 link ${OUTPUT_NAME}
