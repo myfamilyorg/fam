@@ -25,7 +25,7 @@ compile() {
 	do
             if [ -f "${file}" ]; then
                 local BASENAME=$(basename "$file" .c);
-		local COMMAND="${CC} ${FLAGS} ${CCFLAGS} -o ${TMP_DIR}/${BASENAME}.o -c ${file}";
+		local COMMAND="${CC} -I${SRC} ${FLAGS} ${CCFLAGS} -o ${TMP_DIR}/${BASENAME}.o -c ${file}";
 		if [ "${VERBOSE}" = "1" ]; then
                     echo "${COMMAND}"
                 fi
