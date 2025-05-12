@@ -2,65 +2,24 @@
 
 # Pull in scripts
 . ${FAM_BASE}/scripts/parse_toml.sh
-. ${FAM_BASE}/scripts/compile.sh
-. ${FAM_BASE}/scripts/link.sh
+. ${FAM_BASE}/scripts/dl_deps.sh
 . ${FAM_BASE}/scripts/dep.sh
+. ${FAM_BASE}/scripts/compile.sh
 
-# Parse fam.toml
-TOML_FILE="${DIRECTORY}/fam.toml"
-parse_toml
-BUILD_CRATE_NAME=${CRATE_NAME};
-BUILD_CRATE_TYPE=${CRATE_TYPE};
+parse_toml "${DIRECTORY}/fam.toml";
 
-# Setup target directory
-mkdir -p ${DIRECTORY}/target/out
-mkdir -p ${DIRECTORY}/target/lib
-mkdir -p ${DIRECTORY}/target/deps
+mkdir -p ${DIRECTORY}/target/deps;
+mkdir -p ${DIRECTORY}/target/lib;
+mkdir -p ${DIRECTORY}/target/out;
 
-# Compile deps
-DEP_LOCAL_BASE=${DIRECTORY}
-DEP_OUTPUT_LIBS=${DIRECTORY}/target/lib
-DEPS_BASE_DIR=${DIRECTORY}/target/deps
-C_ARCHIVE_LINKS="";
-DEPTH=0;
-fam_dep
-
-# Link lib/archives
-fam_link "$@"
-
-if [ "${BUILD_CRATE_TYPE}" = "lib" ]; then
-    if [ "$(uname -s)" = "Linux" ]; then
-        FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.so"
-        SHARED="-shared"
-    elif [ "$(uname -s)" = "Darwin" ]; then
-        FINAL_OUTPUT="${DIRECTORY}/target/out/lib${BUILD_CRATE_NAME}.dylib"
-        SHARED="-dynamiclib -Wl,-install_name,@rpath/lib${BUILD_CRATE_NAME}.dylib"
-    else
-        echo "Supported platforms [Linux, Darwin]. $(uname -s) is current not supported.";
-	exit 1;
+DL_BASE="${DIRECTORY}/target/deps"
+dl_deps ${DL_BASE} ${CRATE_DEP_COUNT} ${DEP_SUMMARY} 0;
+for file in ${DL_BASE}/*.lock
+do
+    if [ -e "${file}" ]; then
+        rmdir ${file}
     fi
-else
-    FINAL_OUTPUT="${DIRECTORY}/target/out/${BUILD_CRATE_NAME}"
-    if [ "$(uname -s)" = "Linux" ]; then
-        SHARED=-static
-    elif [ "$(uname -s)" = "Darwin" ]; then
-        SHARED=
-    else
-        echo "Supported platforms [Linux, Darwin]. $(uname -s) is current not supported.";
-        exit 1;
-    fi
-fi
+done
 
-# Final build
-
-if [ ${COMPILE_TESTS} -ne 1 ]; then
-    COMMAND="${CC} ${CCFLAGS} ${SHARED} -o ${FINAL_OUTPUT} \
-    ${DIRECTORY}/target/lib/*.o \
-    -L${DIRECTORY}/target/lib \
-    ${C_ARCHIVE_LINKS}"
-
-    if [ "${VERBOSE}" = "1" ]; then
-        echo ${COMMAND}
-    fi
-    ${COMMAND} || exit 1;
-fi
+DEPS_UPDATED=0;
+fam_dep ${DIRECTORY} ${DIRECTORY}/target/deps ${DIRECTORY}/target/lib 0

@@ -1,3 +1,4 @@
 [crate]
 	lib = "crate4"
 [deps]
+	crate5 = { path = "../crate5" }

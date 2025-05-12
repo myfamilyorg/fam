@@ -1,129 +1,95 @@
 #!/bin/bash
 
 fam_dep() {
-    TOML_FILE="${DEP_LOCAL_BASE}/fam.toml";
-    parse_toml
-    local LOCAL_CRATE_NAME=${CRATE_NAME};
-    local LOCAL_DEP_LOCAL_BASE=${DEP_LOCAL_BASE};
-    local LOCAL_CRATE_DEP_COUNT[$DEPTH]=${CRATE_DEP_COUNT};
-    local LOCAL_DEP_SUMMARY[$DEPTH]=${DEP_SUMMARY};
+    local C_SRC=$1/c;
+    local RUST_SRC=$1/src;
+    local DEP_BASE=$2;
+    local OUTPUT_LIBS=$3;
+    local DEPTH=$4;
+
+    local TOML_FILE="$1/fam.toml";
+    parse_toml ${TOML_FILE};
+    local DEP_CRATE_NAME=${CRATE_NAME};
+    local DEP_DEP_COUNT=${CRATE_DEP_COUNT};
+    local DEP_DEP_SUMMARY=${DEP_SUMMARY};
+
+    local i=1;
     local LOCAL_EXTERN="";
 
-    # Handle dependencies
-    local i=1;
-    while [ $i -le ${LOCAL_CRATE_DEP_COUNT[$DEPTH]} ]; do
-	    local itt=$i
-	    local INDEX=`expr $itt - 1`;
-	    local SUMMARY=${LOCAL_DEP_SUMMARY[$DEPTH]};
+    while [ $i -le ${DEP_DEP_COUNT} ]; do
+	    local INDEX=$(expr $i - 1);
 	    local CRATE_INDEX=`expr 1 + $INDEX \* 3`;
-	    local TYPE_INDEX=`expr 2 + $INDEX \* 3`;
-	    local LOC_INDEX=`expr 3 + $INDEX \* 3`;
-	    local CRATE=$(echo "${SUMMARY}" | cut -d ' ' -f $CRATE_INDEX)
-	    local TYPE=$(echo "${SUMMARY}" | cut -d ' ' -f $TYPE_INDEX)
-	    local LOC=$(echo "${SUMMARY}" | cut -d ' ' -f $LOC_INDEX)
+            local TYPE_INDEX=`expr 2 + $INDEX \* 3`;
+            local LOC_INDEX=`expr 3 + $INDEX \* 3`;
+            local CRATE=$(echo "${DEP_DEP_SUMMARY}" | cut -d ' ' -f $CRATE_INDEX);
+            local TYPE=$(echo "${DEP_DEP_SUMMARY}" | cut -d ' ' -f $TYPE_INDEX);
+            local LOC=$(echo "${DEP_DEP_SUMMARY}" | cut -d ' ' -f $LOC_INDEX);
 
-	    if [ "$TYPE" = "path" ]; then
-	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/c" || exit 1;
-	        mkdir -p "${DEPS_BASE_DIR}/$CRATE/src" || exit 1;
-		LOC="${LOC%%#*}";
+            if [ "$TYPE" = "path" ]; then
 
 		if [[ "${LOC}" == /* ]]; then
                     LOC_CPY="${LOC}";
-		else
-		    LOC_CPY="${DIRECTORY}/${LOC}";
-		fi
-
-                if [ -d "${LOC_CPY}/c" ]; then
-                    if ls ${LOC_CPY}/c/* >/dev/null 2>&1; then
-                        cp -rp ${LOC_CPY}/c/* ${DEPS_BASE_DIR}/${CRATE}/c || exit 1
-                    fi
+                else
+                    LOC_CPY="${DIRECTORY}/${LOC}";
                 fi
 
-	        cp -rp $LOC_CPY/src/* ${DEPS_BASE_DIR}/$CRATE/src || exit 1;
-	        cp -rp $LOC_CPY/fam.* ${DEPS_BASE_DIR}/$CRATE/ || exit 1;
-            else
-                GIT_DIR="${DEPS_BASE_DIR}/$CRATE";
-		if [ ! -e $GIT_DIR ]; then
-                    printf "${CYAN}Downloading${RESET} $CRATE\n";
+		if [ ! -e ${DEP_BASE}/$CRATE/src ]; then
+		    mkdir -p "${DEP_BASE}/$CRATE/c" || exit 1;
+                    mkdir -p "${DEP_BASE}/$CRATE/src" || exit 1;
 
-                    if [[ "${LOC}" == *#* ]]; then
-                        GIT_URL="${LOC%%#*}"
-                        TAG="${LOC#*#}"
-                    else
-                        GIT_URL="${LOC}"
-                        TAG=""
+		    if [ -d "${LOC_CPY}/c" ]; then
+                        if ls ${LOC_CPY}/c/* >/dev/null 2>&1; then
+                            cp -rp ${LOC_CPY}/c/* ${DEP_BASE}/${CRATE}/c || exit 1
+                        fi
                     fi
 
-		    COMMAND="git clone ${GIT_URL} --no-checkout --depth 1 --single-branch ${GIT_DIR} -q"
-		    if [ "${VERBOSE}" = "1" ]; then
-                        echo $COMMAND;
-                    fi
-		    ${COMMAND} || exit 1;
-
-		    if [ "${TAG}" = "" ]; then
-		        COMMAND="git -C ${GIT_DIR} rev-parse HEAD";
-		        if [ "${VERBOSE}" = "1" ]; then
-                            echo $COMMAND;
-                        fi
-		        GIT_COMMIT=`${COMMAND}`;
-
-		        echo "[deps]" > ${LOCAL_DEP_LOCAL_BASE}/fam.lock || exit 1;
-		        COMMAND="${FAM_BASE}/bin/famparse lock ${LOCAL_DEP_LOCAL_BASE}/fam.lock ${CRATE} ${GIT_COMMIT}";
-		        if [ "${VERBOSE}" = "1" ]; then
-		            echo "$COMMAND";
-		        fi
-		        ${COMMAND} || exit 1;
-
-
-                        COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q"
-		        if [ "${VERBOSE}" = "1" ]; then
-                            echo $COMMAND;
-                        fi
-		        ${COMMAND} || exit 1;
-
-
-		        COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
-		        if [ "${VERBOSE}" = "1" ]; then
-                            echo $COMMAND;
-                        fi
-                        ${COMMAND} || exit 1;
-                    else
-			COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin refs/tags/${TAG} -q";
-			if [ "${VERBOSE}" = "1" ]; then
-                            echo $COMMAND;
-                        fi
-                        ${COMMAND} || exit 1;
-
-                        COMMAND="git -C ${GIT_DIR} checkout FETCH_HEAD -q";
-			if [ "${VERBOSE}" = "1" ]; then
-                            echo $COMMAND;
-                        fi
-                        ${COMMAND} || exit 1;
-		    fi
+                    cp -rp $LOC_CPY/src/* ${DEP_BASE}/$CRATE/src || exit 1;
+                    cp -rp $LOC_CPY/fam.* ${DEP_BASE}/$CRATE/ || exit 1;
 		fi
+
+	    else
+		    echo "git"
 	    fi
 
-	    LOCAL_EXTERN="--extern ${CRATE}=${DEP_OUTPUT_LIBS}/lib${CRATE}.rlib  ${LOCAL_EXTERN}";
-	    DEP_LOCAL_BASE=${DEPS_BASE_DIR}/$CRATE
-	    DEPTH=$((DEPTH + 1));
-	    fam_dep
-	    DEPTH=$((DEPTH - 1))
-		
-	    i=`expr $itt + 1`;
+	    LOCAL_EXTERN="--extern ${CRATE}=${OUTPUT_LIBS}/lib${CRATE}.rlib  ${LOCAL_EXTERN}";
+	    DEPTH=$(expr $DEPTH + 1);
+	    fam_dep ${DEP_BASE}/${CRATE} ${DEP_BASE} ${OUTPUT_LIBS} ${DEPTH}
+	    DEPTH=$(expr $DEPTH - 1);
+	    #fam_dep ${DIRECTORY} ${DIRECTORY}/target/deps ${DIRECTORY}/target/lib 0
+
+	    i=$(expr $i + 1);
     done
 
-    # Compile c
-    C_DIRECTORY="${LOCAL_DEP_LOCAL_BASE}/c";
-    C_ARCHIVE="${LOCAL_CRATE_NAME}";
-    C_OUTPUT="${DEP_OUTPUT_LIBS}";
-    compile_c "$@"
+    for file in ${C_SRC}/*.c
+    do
+        if [ -e "${file}" ]; then
+            # if one or more c file exists, compile them
+            compile_c ${C_SRC} ${DEP_CRATE_NAME} ${OUTPUT_LIBS}
+            break;
+        fi
+    done
 
-    # Compile rust
-    RUSTC_OUT="${DEP_OUTPUT_LIBS}/lib${LOCAL_CRATE_NAME}.rlib";
-    RUSTC_SRC="${LOCAL_DEP_LOCAL_BASE}/src";
-    RUSTC_CRATE_TYPE="lib";
-    RUSTC_CRATE_NAME="${LOCAL_CRATE_NAME}";
-    RUSTC_EXTERN="${LOCAL_EXTERN}";
-    RUSTC_LIBS="-L${DEP_OUTPUT_LIBS}";
-    compile_rust "$@"
+    if [ ${DEPTH} -eq 0 ]; then
+        if [ ${DEPS_UPDATED} -eq 1 ]; then
+		touch ${DIRECTORY}/src/lib.rs
+	fi
+
+	if ${RUSTC} --version | grep -q "mrustc"; then
+	    RUSTFLAGS="--cfg famc -lSystem ${C_ARCHIVE_LINKS}"
+	    RCRATE_TYPE=lib
+        else
+	    RUSTFLAGS="-lSystem ${C_ARCHIVE_LINKS}"
+	    RCRATE_TYPE=bin
+        fi
+	RUSTC_EXTERN=${LOCAL_EXTERN}
+        compile_rust ${RUST_SRC} ${DIRECTORY}/target/out/${DEP_CRATE_NAME} ${DEP_CRATE_NAME} ${RCRATE_TYPE} -L${OUTPUT_LIBS}
+	if ${RUSTC} --version | grep -q "mrustc"; then
+		COMMAND="${CC} -o ${DIRECTORY}/target/out/${DEP_CRATE_NAME} ${DIRECTORY}/target/out/*.o ${FAM_BASE}/resources/famc.c"
+		echo "$COMMAND"
+		${COMMAND}
+	fi
+    else
+	RUSTC_EXTERN=${LOCAL_EXTERN}
+        compile_rust ${RUST_SRC} ${OUTPUT_LIBS}/lib${DEP_CRATE_NAME}.rlib ${DEP_CRATE_NAME} lib -L${OUTPUT_LIBS}
+    fi
 }

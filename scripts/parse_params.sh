@@ -8,21 +8,13 @@ parse_args() {
     COMMAND_SET="0";
     DIRECTORY="`pwd`";
     VERBOSE=0;
+
     RUSTC=rustc;
-    LINK_LIB=staticlib;
     export CC=clang
     CCFLAGS="-O3"
     COMPILE_TESTS=0
 
-    dir_set=0;
-    exp_dir=0;
     for arg in "$@"; do
-	if [ ${exp_dir} -eq 1 ]; then
-		DIRECTORY=$arg
-		dir_set=1;
-		exp_dir=0;
-		continue;
-	fi
         case "$arg" in
             test)
                 TEST=1
@@ -60,13 +52,8 @@ parse_args() {
 		fi
 		COMMAND_SET=1;
             ;;
-            -d)
-                if [ ${dir_set} -eq 1 ]; then
-			echo "Error: -d option specified twice"
-			usage
-			exit 1;
-		fi
-                exp_dir=1;
+            -d=*)
+		DIRECTORY=${arg#*=};
             ;;
             --cc=*)
                 export CC=${arg#*=};
@@ -82,7 +69,7 @@ parse_args() {
                 RUSTFLAGS=${arg#*=};
             ;;
             --verbose)
-                VERBOSE=1;
+                export VERBOSE=1;
             ;;
             --test)
                 COMPILE_TESTS=1;
@@ -97,7 +84,7 @@ parse_args() {
 
     if ${RUSTC} --version | grep -q "mrustc"; then
         if [ "$RUSTFLAGSSET" = "" ]; then
-            RUSTFLAGS="-O"
+            RUSTFLAGS="-O --cfg famc"
 	fi
         LINK_LIB=lib
 	OBJ_EXT=""
