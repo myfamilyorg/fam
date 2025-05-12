@@ -9,6 +9,7 @@ parse_args() {
     DIRECTORY="`pwd`";
     VERBOSE=0;
     STATIC="";
+    LINK_FLAGS="-nodefaultlibs -lc"
 
     CC=clang
     CCFLAGS="-O3 -flto"
@@ -72,6 +73,7 @@ parse_args() {
             ;;
             --static)
 	        STATIC="-static";
+		LINK_FLAGS="";
             ;;
             *)
 		echo "Unexpected param: $arg";
