@@ -1,4 +1,3 @@
-// rustc working:
 #![allow(internal_features)]
 #![no_std]
 #![no_main]
@@ -23,7 +22,11 @@ fn start<T>(_main: fn() -> T, argc: isize, argv: *const *const u8, _sigpipe: u8)
 }
 
 #[no_mangle]
-pub extern "C" fn real_main(argc: i32, _argv: *const *const i8) -> i32 {
+pub extern "C" fn real_main_impl(argc: i32, argv: *const *const i8) -> i32 {
+    real_main(argc, argv)
+}
+
+pub fn real_main(argc: i32, _argv: *const *const i8) -> i32 {
     argc
 }
 
