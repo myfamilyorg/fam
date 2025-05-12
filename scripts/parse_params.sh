@@ -8,11 +8,10 @@ parse_args() {
     COMMAND_SET="0";
     DIRECTORY="`pwd`";
     VERBOSE=0;
+    STATIC="";
 
-    RUSTC=rustc;
-    export CC=clang
-    CCFLAGS="-O3"
-    COMPILE_TESTS=0
+    CC=clang
+    CCFLAGS="-O3 -flto"
 
     for arg in "$@"; do
         case "$arg" in
@@ -56,7 +55,7 @@ parse_args() {
 		DIRECTORY=${arg#*=};
             ;;
             --cc=*)
-                export CC=${arg#*=};
+                CC=${arg#*=};
             ;;
             --rustc=*)
                 RUSTC=${arg#*=};
@@ -69,10 +68,10 @@ parse_args() {
                 RUSTFLAGS=${arg#*=};
             ;;
             --verbose)
-                export VERBOSE=1;
+                VERBOSE=1;
             ;;
-            --test)
-                COMPILE_TESTS=1;
+            --static)
+	        STATIC="-static";
             ;;
             *)
 		echo "Unexpected param: $arg";
@@ -82,19 +81,6 @@ parse_args() {
         esac
     done
 
-    if ${RUSTC} --version | grep -q "mrustc"; then
-        if [ "$RUSTFLAGSSET" = "" ]; then
-            RUSTFLAGS="-O --cfg famc"
-	fi
-        LINK_LIB=lib
-	OBJ_EXT=""
-    else
-	if [ "$RUSTFLAGSSET" = "" ]; then
-            RUSTFLAGS="-C opt-level=3"
-        fi  
-        LINK_LIB=staticlib;
-	OBJ_EXT=".o"
-    fi
     if [ "${COMMAND_SET}" = "0" ]; then
 	    ALL=1
     fi

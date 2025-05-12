@@ -5,8 +5,10 @@
 . ${FAM_BASE}/scripts/dl_deps.sh
 . ${FAM_BASE}/scripts/dep.sh
 . ${FAM_BASE}/scripts/compile.sh
+. ${FAM_BASE}/scripts/link.sh
 
 parse_toml "${DIRECTORY}/fam.toml";
+OUTPUT_NAME=${CRATE_NAME};
 
 mkdir -p ${DIRECTORY}/target/deps;
 mkdir -p ${DIRECTORY}/target/lib;
@@ -23,3 +25,5 @@ done
 
 DEPS_UPDATED=0;
 fam_dep ${DIRECTORY} ${DIRECTORY}/target/deps ${DIRECTORY}/target/lib 0
+
+link ${OUTPUT_NAME}
