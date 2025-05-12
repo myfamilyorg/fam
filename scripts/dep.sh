@@ -31,14 +31,10 @@ fam_dep() {
                 fi
 
 		if [ ! -e ${DEP_BASE}/$CRATE/src ]; then
-                    mkdir -p "${DEP_BASE}/$CRATE/src" || exit 1;
-
-                    cp -rp $LOC_CPY/src/* ${DEP_BASE}/$CRATE/src || exit 1;
+                    mkdir -p ${DEP_BASE}/$CRATE/
+                    cp -rp $LOC_CPY/src ${DEP_BASE}/$CRATE/ || exit 1;
                     cp -rp $LOC_CPY/fam.* ${DEP_BASE}/$CRATE/ || exit 1;
 		fi
-
-	    else
-		    echo "git"
 	    fi
 
 	    DEPTH=$(expr $DEPTH + 1);

@@ -1,6 +1,6 @@
 [crate]
 	bin = "crate1"
 [deps]
-	crate2 = { path = "../crate2" }
-	ffi = { git = "https://github.com/myfamilyorg/ffi", tag="1.1.1" }
-        crate4 = { path = "../crate4" }
+	#crate2 = { path = "../crate2" }
+	sys = { git = "https://github.com/myfamilyorg/sys" }
+        #crate4 = { path = "../crate4" }
