@@ -75,10 +75,18 @@ fam_dep() {
 	fi
 
 	if ${RUSTC} --version | grep -q "mrustc"; then
-	    RUSTFLAGS="--cfg famc -lSystem ${C_ARCHIVE_LINKS}"
+             if [ "$(uname -s)" = "Linux" ]; then
+                 RUSTFLAGS="--cfg famc ${C_ARCHIVE_LINKS}"
+	     elif [ "$(uname -s)" = "Darwin" ]; then
+	         RUSTFLAGS="--cfg famc -lSystem ${C_ARCHIVE_LINKS}"
+	     fi
 	    RCRATE_TYPE=lib
         else
-	    RUSTFLAGS="-lSystem ${C_ARCHIVE_LINKS}"
+            if [ "$(uname -s)" = "Linux" ]; then
+                 RUSTFLAGS="${C_ARCHIVE_LINKS}"
+	    elif [ "$(uname -s)" = "Darwin" ]; then
+	        RUSTFLAGS="-lSystem ${C_ARCHIVE_LINKS}"
+	    fi
 	    RCRATE_TYPE=bin
         fi
 	RUSTC_EXTERN=${LOCAL_EXTERN}
