@@ -24,12 +24,26 @@ git_dl() {
             printf "${CYAN}Downloading${RESET} ${CRATE}\n"
             COMMAND="git clone ${GIT_URL} --no-checkout --depth 1 --single-branch ${GIT_DIR} -q";
             ${COMMAND} || exit 1;
-            GIT_COMMIT=`git -C ${GIT_DIR} rev-parse HEAD`;
-            git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q;
-            COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
-            ${COMMAND} || exit 1;
-            parse_toml ${GIT_DIR}/fam.toml;
-            dl_deps $DL_BASE ${CRATE_DEP_COUNT} ${DEP_SUMMARY};
+	    if [ "${TAG}" = "" ]; then
+                GIT_COMMIT=`git -C ${GIT_DIR} rev-parse HEAD`;
+                git -C ${GIT_DIR} fetch --depth 1 origin ${GIT_COMMIT} -q;
+                COMMAND="git -C ${GIT_DIR} checkout ${GIT_COMMIT} -q";
+                ${COMMAND} || exit 1;
+                parse_toml ${GIT_DIR}/fam.toml;
+                dl_deps $DL_BASE ${CRATE_DEP_COUNT} ${DEP_SUMMARY};
+            else
+		COMMAND="git -C ${GIT_DIR} fetch --depth 1 origin refs/tags/${TAG} -q";
+                if [ "${VERBOSE}" = "1" ]; then
+                    echo $COMMAND;
+                fi
+                ${COMMAND} || exit 1;
+
+                COMMAND="git -C ${GIT_DIR} checkout FETCH_HEAD -q";
+                if [ "${VERBOSE}" = "1" ]; then
+                    echo $COMMAND;
+                fi
+                ${COMMAND} || exit 1;
+	    fi
 	fi
     fi
 }
