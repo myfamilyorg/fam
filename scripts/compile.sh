@@ -8,7 +8,7 @@ compile() {
     local ARCHIVE_FILE="${OUTPUT}/lib${CRATE}.a";
     local NEED_UPDATE=0;
 
-    for file in ${SRC}/*.c
+    for file in ${SRC}/*.c ${SRC}/*.h
     do
         if [ ! -e ${ARCHIVE_FILE} ] || [ ${file} -nt ${ARCHIVE_FILE} ]; then
             NEED_UPDATE=1;
@@ -21,11 +21,19 @@ compile() {
 	local TMP_DIR=${OUTPUT}/${CRATE}.tmp
 	mkdir -p ${TMP_DIR}
 
+	local INCLUDE_FLAGS="";
+	for dir in ${DIRECTORY}/target/deps/*
+	do
+		if [ -d "${dir}" ]; then
+			INCLUDE_FLAGS="-I${dir}/src $INCLUDE_FLAGS"
+		fi
+	done
+
 	for file in ${SRC}/*.c
 	do
             if [ -f "${file}" ]; then
                 local BASENAME=$(basename "$file" .c);
-		local COMMAND="${CC} -I${SRC} ${FLAGS} ${CCFLAGS} -o ${TMP_DIR}/${BASENAME}.o -c ${file}";
+		local COMMAND="${CC} -I${SRC} ${INCLUDE_FLAGS} ${FLAGS} ${CCFLAGS} -o ${TMP_DIR}/${BASENAME}.o -c ${file}";
 		if [ "${VERBOSE}" = "1" ]; then
                     echo "${COMMAND}"
                 fi
