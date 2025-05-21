@@ -142,8 +142,8 @@ typedef unsigned int uint32_t;
 typedef long int64_t;
 typedef unsigned long uint64_t;
 #elif defined(__APPLE__)
-typedef long int64_t;
-typedef unsigned long uint64_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
 #else
 #error Unsupported platform. Supported platforms: __linux__ or __APPLE__
 #endif
