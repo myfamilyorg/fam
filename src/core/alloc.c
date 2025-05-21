@@ -65,15 +65,15 @@
 
 #define SET_BITMAP(chunk, index)                                               \
 	do {                                                                   \
-		unsigned char *tmp;                                            \
-		tmp = (unsigned char *)(chunk);                                \
+		byte *tmp;                                            \
+		tmp = (byte *)(chunk);                                \
 		tmp[sizeof(ChunkHeader) + (index >> 3)] |= 0x1 << (index & 7); \
 	} while (FALSE);
 
 #define UNSET_BITMAP(chunk, index)                         \
 	do {                                               \
-		unsigned char *tmp;                        \
-		tmp = (unsigned char *)(chunk);            \
+		byte *tmp;                        \
+		tmp = (byte *)(chunk);            \
 		tmp[sizeof(ChunkHeader) + (index >> 3)] &= \
 		    ~(0x1 << (index & 7));                 \
 	} while (FALSE);
@@ -88,7 +88,7 @@
 	((8 * CHUNK_SIZE - 8 * sizeof(ChunkHeader) - 7) / (1 + 8 * (slab_size)))
 
 #define BITMAP_PTR(chunk, index, slab_size)             \
-	((unsigned char *)chunk + sizeof(ChunkHeader) + \
+	((byte *)chunk + sizeof(ChunkHeader) + \
 	 BITMAP_SIZE(slab_size) + (index * slab_size))
 
 #define BITMAP_INDEX(ptr, chunk)                                       \
@@ -104,7 +104,7 @@
 		(result) = (size_t) - 1;                                     \
 		if ((chunk) != NULL && (max) > 0) {                          \
 			uint64_t *bitmap =                                   \
-			    (uint64_t *)((unsigned char *)(chunk) +          \
+			    (uint64_t *)((byte *)(chunk) +          \
 					 sizeof(ChunkHeader));               \
 			size_t max_words = ((max) + 63) >> 6;                \
 			while (chunk->header.last_free < max_words) {        \
@@ -252,7 +252,7 @@ STATIC void *alloc_slab(size_t slab_size) {
 STATIC void free_slab(void *ptr) {
 	Chunk *chunk;
 	uint64_t *bitmap64;
-	unsigned char *bitmap;
+	byte *bitmap;
 	size_t index, size, chunk_index, i = 0;
 
 	/* Align to chunk header using the property that all Chunks are aligned
@@ -269,8 +269,8 @@ STATIC void free_slab(void *ptr) {
 		UNSET_BITMAP(chunk, index);
 
 		size = BITMAP_SIZE(chunk->header.slab_size);
-		bitmap = (unsigned char *)((size_t)chunk + sizeof(ChunkHeader));
-		bitmap64 = (uint64_t *)((unsigned char *)(chunk) +
+		bitmap = (byte *)((size_t)chunk + sizeof(ChunkHeader));
+		bitmap64 = (uint64_t *)((byte *)(chunk) +
 					sizeof(ChunkHeader));
 
 		if (bitmap64[chunk->header.last_free]) return;

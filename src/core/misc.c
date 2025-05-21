@@ -49,11 +49,7 @@ int strcmp(const char *X, const char *Y) {
 }
 
 int strcmpn(const char *X, const char *Y, size_t n) {
-	if (X == NULL || Y == NULL) {
-		if (X == Y) return 0;
-		return X == NULL ? -1 : 1;
-	}
-	while (n > 0 && *X == *Y && *X != '\0') {
+	while (n > 0 && *X == *Y && *X != '\0' && *Y != '\0') {
 		X++;
 		Y++;
 		n--;
@@ -76,7 +72,7 @@ const char *strstr(const char *s, const char *sub) {
 }
 
 void *memset(void *dest, int c, size_t n) {
-	__attribute__((aligned(16))) unsigned char *s = (unsigned char *)dest;
+	__attribute__((aligned(16))) byte *s = (byte *)dest;
 	__attribute__((aligned(16))) size_t i;
 
 	if (dest == NULL || n == 0) {
@@ -84,15 +80,15 @@ void *memset(void *dest, int c, size_t n) {
 	}
 
 	for (i = 0; i < n; i++) {
-		s[i] = (unsigned char)c;
+		s[i] = (byte)c;
 	}
 	return dest;
 }
 
 void *memcpy(void *dest, const void *src, size_t n) {
-	__attribute__((aligned(16))) unsigned char *d = (unsigned char *)dest;
-	__attribute__((aligned(16))) const unsigned char *s =
-	    (unsigned char *)src;
+	__attribute__((aligned(16))) byte *d = (byte *)dest;
+	__attribute__((aligned(16))) const byte *s =
+	    (byte *)src;
 	__attribute__((aligned(16))) size_t i;
 
 	if (dest == NULL || src == NULL || n == 0) {
