@@ -322,9 +322,10 @@ void *alloc(size_t size) {
 	}
 }
 
+/* Free memory location at 'ptr' */
 void release(void *ptr) {
 	void *aligned_ptr = (void *)((size_t)ptr - HEADER_SIZE);
-	if (!ptr) return;
+	if (!ptr) return; /* If ptr NULL simply return */
 	if ((size_t)aligned_ptr % CHUNK_SIZE == 0) { /* large alloc */
 		size_t actual_size;
 		if (*(uint64_t *)((size_t)aligned_ptr + sizeof(uint64_t)) !=
@@ -338,6 +339,7 @@ void release(void *ptr) {
 	}
 }
 
+/* realloc impl */
 void *resize(void *ptr, size_t size) {
 	void *new_ptr;
 	void *aligned_ptr;
@@ -346,6 +348,7 @@ void *resize(void *ptr, size_t size) {
 	size_t copy_size;
 	int is_mmap;
 
+	/* Check special cases */
 	if (ptr == NULL) {
 		return alloc(size);
 	}
