@@ -299,7 +299,7 @@ STATIC void free_slab(void *ptr) {
 
 void *alloc(size_t size) {
 	if (size > SIZE_MAX - HEADER_SIZE) {
-		errno = EINVAL;
+		err = EINVAL;
 		return NULL;
 	} else if (size <= MAX_SLAB_SIZE) { /* slab alloc */
 		size_t slab_size = calculate_slab_size(size);
@@ -311,7 +311,7 @@ void *alloc(size_t size) {
 		     MIN_ALIGN_SIZE) *
 		    MIN_ALIGN_SIZE;
 		ptr = alloc_aligned_memory(aligned_size, CHUNK_SIZE);
-		if (!ptr) /* Could not allocate memory mmap will set errno */
+		if (!ptr) /* Could not allocate memory mmap will set err */
 			return NULL;
 		else {
 			*(uint64_t *)ptr = aligned_size;
@@ -359,7 +359,7 @@ void *resize(void *ptr, size_t size) {
 	}
 
 	if (size > (size_t)-1 - HEADER_SIZE) {
-		errno = ENOMEM;
+		err = ENOMEM;
 		return NULL;
 	}
 
@@ -369,7 +369,7 @@ void *resize(void *ptr, size_t size) {
 	if ((size_t)aligned_ptr % CHUNK_SIZE == 0) { /* Large allocation */
 		if (*(unsigned long *)((size_t)aligned_ptr + sizeof(size_t)) !=
 		    MAGIC_BYTES) {
-			errno = EINVAL; /* Invalid magic */
+			err = EINVAL; /* Invalid magic */
 			return NULL;
 		}
 		old_size = *(size_t *)aligned_ptr;
@@ -377,7 +377,7 @@ void *resize(void *ptr, size_t size) {
 	} else { /* Slab allocation */
 		chunk = (Chunk *)(((size_t)ptr / CHUNK_SIZE) * CHUNK_SIZE);
 		if (chunk->header.magic != MAGIC_BYTES) {
-			errno = EINVAL; /* Invalid magic */
+			err = EINVAL; /* Invalid magic */
 			return NULL;
 		}
 		old_size = chunk->header.slab_size;
@@ -394,7 +394,7 @@ void *resize(void *ptr, size_t size) {
 	/* Allocate new memory */
 	new_ptr = alloc(size);
 	if (new_ptr == NULL) {
-		errno = ENOMEM;
+		err = ENOMEM;
 		return NULL; /* Original ptr remains valid */
 	}
 

@@ -159,7 +159,7 @@
 #define EOWNERDEAD 130	    /* Owner died */
 #define ENOTRECOVERABLE 131 /* State not recoverable */
 
-extern int errno;
+extern int err;
 
 const char *error_string(int err_code);
 int perror(const char *);

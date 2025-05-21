@@ -82,7 +82,7 @@ void *syscall_mmap(void *addr, size_t length, int prot, int flags, int fd,
 #define IMPL_WRAPPER(ret_type, name, ...)         \
 	ret_type v = syscall_##name(__VA_ARGS__); \
 	if (v < 0) {                              \
-		errno = -v;                       \
+		err = -v;                       \
 		return -1;                        \
 	}                                         \
 	return v;
@@ -103,7 +103,7 @@ DECLARE_SYSCALL(int, munmap, 11, 73, void *addr, size_t length)
 int sched_yield(void) {
 	int v = syscall_sched_yield();
 	if (v < 0) {
-		errno = -v;
+		err = -v;
 		return -1;
 	}
 	return v;

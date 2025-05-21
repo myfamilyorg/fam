@@ -89,7 +89,7 @@ int format_impl(FormatterImpl *f, const char *fmt, ...) {
 ssize_t formatter_to_string(const FormatterImpl *f, char *out,
 			    size_t capacity) {
 	if (f == NULL || out == NULL) {
-		errno = EINVAL;
+		err = EINVAL;
 		return -1;
 	}
 	if (capacity < f->size)

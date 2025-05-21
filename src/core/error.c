@@ -27,23 +27,23 @@
 #include <misc.h>
 #include <sys.h>
 
-int errno = 0;
+int err = 0;
 
-int *__error(void) { return &errno; }
+int *__error(void) { return &err; }
 
 int perror(const char *s) {
 	int len = 0, v = 2;
 	const char *err_msg;
 
 	if (s == NULL) {
-		errno = EINVAL;
+		err = EINVAL;
 		return -1;
 	}
 
 	len = strlen(s);
 	if (len) v = write(2, s, len);
 	if (len && v == len) v = write(2, ": ", 2);
-	if (v == 2) err_msg = error_string(errno);
+	if (v == 2) err_msg = error_string(err);
 	if (v == 2) len = strlen(err_msg);
 	if (v == 2) v = write(2, err_msg, len);
 	if (v == len) v = write(2, "\n", 1);
