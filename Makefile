@@ -10,7 +10,7 @@ CFLAGS  = -fPIC \
           -fno-stack-protector \
           -fno-builtin \
           -DSTATIC=static
-TFLAGS  = -g
+TFLAGS  = -g -Wno-overflow
 LDFLAGS = -shared
 
 # Directories
@@ -47,7 +47,7 @@ $(LIBDIR)/libfam.so: $(OBJECTS) | $(LIBDIR)
 
 # Build test binary
 $(TEST_BIN): $(TEST_OBJ) $(LIBDIR)/libfam.so | $(BINDIR)
-	$(CC) -lcriterion -I$(INCLDIR) $(TEST_OBJ) -L$(LIBDIR) -lfam -o $@
+	$(CC) -Wno-overflow -lcriterion -I$(INCLDIR) $(TEST_OBJ) -L$(LIBDIR) -lfam -o $@
 
 # Create directories if they don't exist
 $(OBJDIR) $(TOBJDIR) $(LIBDIR) $(BINDIR):
