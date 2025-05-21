@@ -10,6 +10,16 @@ CFLAGS  = -fPIC \
           -fno-stack-protector \
           -fno-builtin \
           -DSTATIC=static
+PRINT_CFLAGS = -fPIC \
+               -pedantic \
+               -Wall \
+               -Wextra \
+               -O3 \
+               -Wno-variadic-macros \
+               -Wno-long-long \
+               -fno-stack-protector \
+               -fno-builtin \
+               -DSTATIC=static
 TFLAGS  = -g -Wno-overflow
 LDFLAGS = -shared
 
@@ -48,6 +58,9 @@ $(LIBDIR)/libfam.so: $(OBJECTS) | $(LIBDIR)
 # Build test binary
 $(TEST_BIN): $(TEST_OBJ) $(LIBDIR)/libfam.so | $(BINDIR)
 	$(CC) -Wno-overflow -lcriterion -I$(INCLDIR) $(TEST_OBJ) -L$(LIBDIR) -lfam -o $@
+
+$(OBJDIR)/print.o: $(SRCDIR)/core/print.c $(INCLDIR)/print.h | $(OBJDIR)
+	$(CC) -I$(INCLDIR) $(PRINT_CFLAGS) -c $< -o $@
 
 # Create directories if they don't exist
 $(OBJDIR) $(TOBJDIR) $(LIBDIR) $(BINDIR):
