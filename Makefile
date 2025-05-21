@@ -5,7 +5,6 @@ CFLAGS  = -fPIC \
 	 -Wall \
 	 -Wextra \
 	 -O3 \
-	 -D_GNU_SOURCE \
 	 -Wno-variadic-macros \
 	 -Wno-long-long \
 	 -fno-stack-protector \
