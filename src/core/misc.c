@@ -87,8 +87,7 @@ void *memset(void *dest, int c, size_t n) {
 
 void *memcpy(void *dest, const void *src, size_t n) {
 	__attribute__((aligned(16))) byte *d = (byte *)dest;
-	__attribute__((aligned(16))) const byte *s =
-	    (byte *)src;
+	__attribute__((aligned(16))) const byte *s = (byte *)src;
 	__attribute__((aligned(16))) size_t i;
 
 	if (dest == NULL || src == NULL || n == 0) {
@@ -103,22 +102,53 @@ void *memcpy(void *dest, const void *src, size_t n) {
 
 void bzero(void *s, size_t len) { memset(s, 0, len); }
 
-void write_uint64(int fd, uint64_t num) {
-	char buf[32];
-	int i = 0, j;
+/* Convert a 128-bit unsigned integer to a decimal string in buf.
+ * Caller must provide a buffer of at least 40 bytes (39 digits + null).
+ * Returns the length of the string (excluding null terminator).
+ */
+size_t uint128_t_to_string(char *buf, __uint128_t v) {
+	char temp[40];
+	int i = 0, j = 0;
 
-	do {
-		buf[i++] = '0' + (num % 10);
-		num /= 10;
-	} while (num && i < 31);
-
-	for (j = 0; j < i / 2; j++) {
-		char tmp = buf[j];
-		buf[j] = buf[i - 1 - j];
-		buf[i - 1 - j] = tmp;
+	if (v == 0) {
+		buf[0] = '0';
+		buf[1] = '\0';
+		return 1;
 	}
 
-	buf[i++] = '\n';
+	while (v > 0) {
+		temp[i++] = '0' + (v % 10);
+		v /= 10;
+	}
 
-	write(fd, buf, i);
+	for (; i > 0; j++) {
+		buf[j] = temp[--i];
+	}
+	buf[j] = '\0';
+	return j;
+}
+
+/* Convert a 128-bit signed integer to a decimal string in buf.
+ * Caller must provide a buffer of at least 41 bytes (sign + 39 digits + null).
+ * Returns the length of the string (excluding null terminator).
+ */
+size_t int128_t_to_string(char *buf, __int128_t v) {
+	int is_negative = v < 0;
+	size_t len = 0;
+	__uint128_t abs_v;
+
+	/* Define INT128_MIN as a signed 128-bit constant */
+	const __int128_t int128_min = -((__int128_t)1 << 127);	  /* -2^127 */
+	const __uint128_t int128_min_abs = (__uint128_t)1 << 127; /* 2^127 */
+
+	if (is_negative) {
+		buf[0] = '-';
+		buf++;
+		abs_v = v == int128_min ? int128_min_abs : (__uint128_t)(-v);
+	} else {
+		abs_v = (__uint128_t)v;
+	}
+
+	len = uint128_t_to_string(buf, abs_v);
+	return is_negative ? len + 1 : len;
 }

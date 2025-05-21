@@ -59,7 +59,8 @@ $(LIBDIR)/libfam.so: $(OBJECTS) | $(LIBDIR)
 $(TEST_BIN): $(TEST_OBJ) $(LIBDIR)/libfam.so | $(BINDIR)
 	$(CC) -Wno-overflow -lcriterion -I$(INCLDIR) $(TEST_OBJ) -L$(LIBDIR) -lfam -o $@
 
-$(OBJDIR)/print.o: $(SRCDIR)/core/print.c $(INCLDIR)/print.h | $(OBJDIR)
+# Formatting requires __VA_OPT__ so to supress warnings we disable -std=c89 for this file.
+$(OBJDIR)/format.o: $(SRCDIR)/core/format.c $(INCLDIR)/format.h | $(OBJDIR)
 	$(CC) -I$(INCLDIR) $(PRINT_CFLAGS) -c $< -o $@
 
 # Create directories if they don't exist

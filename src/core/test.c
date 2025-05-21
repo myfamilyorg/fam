@@ -1,6 +1,6 @@
 #include <alloc.h>
 #include <criterion/criterion.h>
-#include <print.h>
+#include <format.h>
 
 Test(core, test) {
 	char *x = alloc(100);

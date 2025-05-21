@@ -1,7 +1,7 @@
 #include <alloc.h>
 #include <error.h>
+#include <format.h>
 #include <misc.h>
-#include <print.h>
 
 ssize_t snprintf(char *buf, size_t capacity, const char *fmt, ...);
 
@@ -62,8 +62,7 @@ int format_impl(FormatterImpl *f, const char *fmt, ...) {
 			}
 		} else if (p.pt == UINT32) {
 			char buf[1024];
-			ssize_t len =
-			    snprintf(buf, sizeof(buf), "%u", p.value.uint32);
+			size_t len = uint128_t_to_string(buf, p.value.uint32);
 			if (formatter_append(f, buf, len)) {
 				ret = -1;
 				break;

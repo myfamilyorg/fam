@@ -63,6 +63,8 @@ typedef struct {
 		uint16_t uint16;
 		uint32_t uint32;
 		uint64_t uint64;
+		uint128_t uint128;
+		int128_t int128;
 		char *cstring;
 	} value;
 } Printable;
