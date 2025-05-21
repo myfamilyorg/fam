@@ -24,7 +24,6 @@
  *******************************************************************************/
 
 #include <error.h>
-#include <sys/mman.h>
 #include <types.h>
 
 #ifdef __linux__
