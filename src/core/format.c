@@ -3,8 +3,6 @@
 #include <format.h>
 #include <misc.h>
 
-ssize_t snprintf(char *buf, size_t capacity, const char *fmt, ...);
-
 STATIC size_t capacity_for(size_t bytes) {
 	if (bytes < 64) return 64;
 	bytes--;
@@ -44,9 +42,8 @@ int format_impl(FormatterImpl *f, const char *fmt, ...) {
 	__builtin_va_list args;
 	__builtin_va_start(args, fmt);
 
-	do {
-		ptr = strstr(fmt, "{}");
-		if (!ptr) break;
+	while ((ptr = strstr(fmt, "{}"))) {
+		char buf[64];
 		if (formatter_append(f, fmt, ptr - fmt)) {
 			ret = -1;
 			break;
@@ -55,31 +52,35 @@ int format_impl(FormatterImpl *f, const char *fmt, ...) {
 		p = __builtin_va_arg(args, Printable);
 
 		if (p.pt == CSTR) {
-			size_t len = strlen(p.value.cstring);
-			if (formatter_append(f, p.value.cstring, len)) {
+			if (formatter_append(f, p.value.cstring,
+					     strlen(p.value.cstring))) {
 				ret = -1;
 				break;
 			}
-		} else if (p.pt == UINT32) {
-			char buf[1024];
-			size_t len = uint128_t_to_string(buf, p.value.uint32);
+		} else if (p.pt == UINT8 || p.pt == UINT16 || p.pt == UINT32 ||
+			   p.pt == UINT64 || p.pt == UINT128) {
+			size_t len = uint128_t_to_string(buf, p.value.uint128);
 			if (formatter_append(f, buf, len)) {
 				ret = -1;
 				break;
 			}
-		} else if (p.pt == INT64) {
-			char buf[1024];
-			ssize_t len =
-			    snprintf(buf, sizeof(buf), "%lld", p.value.int64);
+		} else if (p.pt == INT8 || p.pt == INT16 || p.pt == INT32 ||
+			   p.pt == INT64 || p.pt == INT128) {
+			size_t len = int128_t_to_string(buf, p.value.int128);
+			if (formatter_append(f, buf, len)) {
+				ret = -1;
+				break;
+			}
+		} else if (p.pt == DOUBLE) {
+			size_t len = double_to_string(buf, p.value.d);
 			if (formatter_append(f, buf, len)) {
 				ret = -1;
 				break;
 			}
 		}
-	} while (true);
+	}
 
 	__builtin_va_end(args);
-
 	if (!ret) formatter_append(f, fmt, strlen(fmt));
 
 	return ret;

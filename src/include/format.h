@@ -6,12 +6,19 @@
 
 #define FORMATTER_INIT {.buf = NULL, .capacity = 0, .size = 0}
 
-#define TO_PRINTABLE(ignore, arg)                                       \
-	_Generic((arg),                                                 \
-	    uint32_t: (Printable){UINT32, {.uint32 = ((uint64_t)arg)}}, \
-	    int: (Printable){INT64, {.int64 = ((int64_t)arg)}},         \
-	    int64_t: (Printable){INT64, {.int64 = ((int64_t)arg)}},     \
-	    char *: (Printable){CSTR, {.cstring = ((char *)arg)}},      \
+#define TO_PRINTABLE(ignore, arg)                                           \
+	_Generic((arg),                                                     \
+	    uint8_t: (Printable){UINT8, {.uint128 = ((uint128_t)arg)}},     \
+	    uint16_t: (Printable){UINT16, {.uint128 = ((uint128_t)arg)}},   \
+	    uint32_t: (Printable){UINT32, {.uint128 = ((uint128_t)arg)}},   \
+	    uint64_t: (Printable){UINT64, {.uint128 = ((uint128_t)arg)}},   \
+	    uint128_t: (Printable){UINT128, {.uint128 = ((uint128_t)arg)}}, \
+	    int8_t: (Printable){INT8, {.int128 = ((int128_t)arg)}},         \
+	    int16_t: (Printable){INT16, {.int128 = ((int128_t)arg)}},       \
+	    int32_t: (Printable){INT32, {.int128 = ((int128_t)arg)}},       \
+	    int64_t: (Printable){INT64, {.int128 = ((int128_t)arg)}},       \
+	    int128_t: (Printable){INT128, {.int128 = ((int128_t)arg)}},     \
+	    char *: (Printable){CSTR, {.cstring = ((char *)arg)}},          \
 	    const char *: (Printable){CSTR, {.cstring = ((char *)arg)}})
 
 #define format(f, fmt, ...)                                                   \
@@ -45,26 +52,22 @@ typedef enum {
 	INT16,
 	INT32,
 	INT64,
+	INT128,
 	UINT8,
 	UINT16,
 	UINT32,
 	UINT64,
+	UINT128,
+	DOUBLE,
 	CSTR
 } PrintType;
 
 typedef struct {
 	PrintType pt;
 	union {
-		int8_t int8;
-		int16_t int16;
-		int32_t int32;
-		int64_t int64;
-		uint8_t uint8;
-		uint16_t uint16;
-		uint32_t uint32;
-		uint64_t uint64;
 		uint128_t uint128;
 		int128_t int128;
+		double d;
 		char *cstring;
 	} value;
 } Printable;

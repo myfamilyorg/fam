@@ -13,8 +13,8 @@ Test(core, test_fmt1) {
 	char buf[1024];
 
 	Formatter f = FORMATTER_INIT;
-	Printable p1 = {.pt = UINT32, .value.uint32 = 123};
-	Printable p2 = {.pt = INT64, .value.int64 = -10};
+	Printable p1 = {.pt = UINT32, .value.uint128 = 123};
+	Printable p2 = {.pt = INT64, .value.int128 = -10};
 	Printable p3 = {.pt = CSTR, .value.cstring = "abcdef"};
 	format_impl(&f, "abc {} def {} ghi \n{} xyz\n", p1, p2, p3);
 	ssize_t len = formatter_to_string(&f, buf, sizeof(buf));
@@ -35,4 +35,5 @@ Test(core, test_fmt1) {
 	println("testing123 {} ok", ((uint32_t)921));
 	print("test: ");
 	println("ok");
+	println("float val = {}.", 123);
 }

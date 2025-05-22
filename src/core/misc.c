@@ -102,10 +102,6 @@ void *memcpy(void *dest, const void *src, size_t n) {
 
 void bzero(void *s, size_t len) { memset(s, 0, len); }
 
-/* Convert a 128-bit unsigned integer to a decimal string in buf.
- * Caller must provide a buffer of at least 40 bytes (39 digits + null).
- * Returns the length of the string (excluding null terminator).
- */
 size_t uint128_t_to_string(char *buf, __uint128_t v) {
 	char temp[40];
 	int i = 0, j = 0;
@@ -128,18 +124,13 @@ size_t uint128_t_to_string(char *buf, __uint128_t v) {
 	return j;
 }
 
-/* Convert a 128-bit signed integer to a decimal string in buf.
- * Caller must provide a buffer of at least 41 bytes (sign + 39 digits + null).
- * Returns the length of the string (excluding null terminator).
- */
 size_t int128_t_to_string(char *buf, __int128_t v) {
 	int is_negative = v < 0;
 	size_t len = 0;
 	__uint128_t abs_v;
 
-	/* Define INT128_MIN as a signed 128-bit constant */
-	const __int128_t int128_min = -((__int128_t)1 << 127);	  /* -2^127 */
-	const __uint128_t int128_min_abs = (__uint128_t)1 << 127; /* 2^127 */
+	const __int128_t int128_min = -((__int128_t)1 << 127);
+	const __uint128_t int128_min_abs = (__uint128_t)1 << 127;
 
 	if (is_negative) {
 		buf[0] = '-';
@@ -151,4 +142,104 @@ size_t int128_t_to_string(char *buf, __int128_t v) {
 
 	len = uint128_t_to_string(buf, abs_v);
 	return is_negative ? len + 1 : len;
+}
+
+/* Convert a double to a decimal string in buf.
+ * Caller must provide a buffer of at least 41 bytes (sign + 17 digits + point +
+ * 17 digits + null). Returns the length of the string (excluding null
+ * terminator).
+ */
+size_t double_to_string(char *buf, double v) {
+	char temp[41];
+	size_t len, i, pos = 0, frac_start, int_start;
+	int digits, is_negative;
+	unsigned long long int_part;
+	double frac_part;
+
+	/* Handle special cases: NaN, infinity */
+	if (v != v) { /* NaN: v != v is true */
+		temp[0] = 'n';
+		temp[1] = 'a';
+		temp[2] = 'n';
+		len = 3;
+		memcpy(buf, temp, len);
+		buf[len] = '\0';
+		return len;
+	}
+	if (v > 1.7976931348623157e308 || v < -1.7976931348623157e308) {
+		/* Infinity */
+		if (v < 0) {
+			buf[pos++] = '-';
+		}
+		temp[0] = 'i';
+		temp[1] = 'n';
+		temp[2] = 'f';
+		len = 3;
+		memcpy(buf + pos, temp, len);
+		len += pos;
+		buf[len] = '\0';
+		return len;
+	}
+
+	/* Handle sign */
+	is_negative = v < 0;
+	if (is_negative) {
+		buf[pos++] = '-';
+		v = -v;
+	}
+
+	/* Handle zero */
+	if (v == 0.0) {
+		buf[pos++] = '0';
+		buf[pos] = '\0';
+		return pos;
+	}
+
+	/* Integer part */
+	int_part = (unsigned long long)v;
+	frac_part = v - (double)int_part;
+	int_start = pos;
+
+	/* Convert integer part (in reverse) */
+	if (int_part == 0) {
+		buf[pos++] = '0';
+	} else {
+		while (int_part > 0) {
+			temp[pos++ - int_start] = '0' + (int_part % 10);
+			int_part /= 10;
+		}
+		/* Reverse integer digits */
+		for (i = 0; i < pos - int_start; i++) {
+			buf[int_start + i] = temp[pos - int_start - 1 - i];
+		}
+	}
+
+	/* Decimal point */
+	if (frac_part > 0) {
+		buf[pos++] = '.';
+
+		/* Fractional part (up to 17 digits for precision) */
+		frac_start = pos;
+		digits = 0;
+		while (frac_part > 0 && digits < 17) {
+			int digit;
+			frac_part *= 10;
+			digit = (int)frac_part;
+			buf[pos++] = '0' + digit;
+			frac_part -= digit;
+			digits++;
+		}
+
+		/* Trim trailing zeros */
+		while (pos > frac_start && buf[pos - 1] == '0') {
+			pos--;
+		}
+		/* Remove decimal point if no fractional digits remain */
+		if (pos == frac_start) {
+			pos--; /* Remove '.' */
+		}
+	}
+
+	buf[pos] = '\0';
+	return pos;
 }

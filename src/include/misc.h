@@ -38,5 +38,6 @@ void *memcpy(void *dst, const void *src, size_t n);
 void bzero(void *dst, size_t n);
 size_t uint128_t_to_string(char *buf, uint128_t v);
 size_t int128_t_to_string(char *buf, int128_t v);
+size_t double_to_string(char *buf, double v);
 
 #endif /* _MISC_H__ */
