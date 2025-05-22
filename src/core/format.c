@@ -72,7 +72,7 @@ int format_impl(FormatterImpl *f, const char *fmt, ...) {
 				break;
 			}
 		} else if (p.pt == DOUBLE) {
-			size_t len = double_to_string(buf, p.value.d);
+			size_t len = double_to_string(buf, p.value.d, 5);
 			if (formatter_append(f, buf, len)) {
 				ret = -1;
 				break;

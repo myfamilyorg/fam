@@ -149,15 +149,18 @@ size_t int128_t_to_string(char *buf, __int128_t v) {
  * 17 digits + null). Returns the length of the string (excluding null
  * terminator).
  */
-size_t double_to_string(char *buf, double v) {
+size_t double_to_string(char *buf, double v, int max_decimals) {
 	char temp[41];
-	size_t len, i, pos = 0, frac_start, int_start;
-	int digits, is_negative;
+	size_t pos = 0;
+	size_t len;
+	int i;
+	int is_negative;
 	unsigned long long int_part;
 	double frac_part;
+	int int_start;
 
 	/* Handle special cases: NaN, infinity */
-	if (v != v) { /* NaN: v != v is true */
+	if (v != v) {
 		temp[0] = 'n';
 		temp[1] = 'a';
 		temp[2] = 'n';
@@ -167,7 +170,6 @@ size_t double_to_string(char *buf, double v) {
 		return len;
 	}
 	if (v > 1.7976931348623157e308 || v < -1.7976931348623157e308) {
-		/* Infinity */
 		if (v < 0) {
 			buf[pos++] = '-';
 		}
@@ -195,12 +197,15 @@ size_t double_to_string(char *buf, double v) {
 		return pos;
 	}
 
+	/* Clamp max_decimals (0–17 for double precision) */
+	if (max_decimals < 0) max_decimals = 0;
+	if (max_decimals > 17) max_decimals = 17;
+
 	/* Integer part */
 	int_part = (unsigned long long)v;
 	frac_part = v - (double)int_part;
 	int_start = pos;
 
-	/* Convert integer part (in reverse) */
 	if (int_part == 0) {
 		buf[pos++] = '0';
 	} else {
@@ -208,20 +213,24 @@ size_t double_to_string(char *buf, double v) {
 			temp[pos++ - int_start] = '0' + (int_part % 10);
 			int_part /= 10;
 		}
-		/* Reverse integer digits */
-		for (i = 0; i < pos - int_start; i++) {
+		for (i = 0; i < (int)(pos - int_start); i++) {
 			buf[int_start + i] = temp[pos - int_start - 1 - i];
 		}
 	}
 
-	/* Decimal point */
-	if (frac_part > 0) {
-		buf[pos++] = '.';
+	/* Decimal point and fractional part */
+	if (frac_part > 0 && max_decimals > 0) {
+		int digits = 0;
+		size_t frac_start;
+		double rounding;
 
-		/* Fractional part (up to 17 digits for precision) */
+		buf[pos++] = '.';
 		frac_start = pos;
-		digits = 0;
-		while (frac_part > 0 && digits < 17) {
+		/* Round to max_decimals */
+		rounding = 0.5;
+		for (i = 0; i < max_decimals; i++) rounding /= 10.0;
+		frac_part += rounding;
+		while (frac_part > 0 && digits < max_decimals) {
 			int digit;
 			frac_part *= 10;
 			digit = (int)frac_part;
@@ -229,14 +238,13 @@ size_t double_to_string(char *buf, double v) {
 			frac_part -= digit;
 			digits++;
 		}
-
 		/* Trim trailing zeros */
 		while (pos > frac_start && buf[pos - 1] == '0') {
 			pos--;
 		}
 		/* Remove decimal point if no fractional digits remain */
 		if (pos == frac_start) {
-			pos--; /* Remove '.' */
+			pos--;
 		}
 	}
 
