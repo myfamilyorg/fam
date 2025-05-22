@@ -65,31 +65,33 @@
 
 #define SET_BITMAP(chunk, index)                                               \
 	do {                                                                   \
-		byte *tmp;                                            \
-		tmp = (byte *)(chunk);                                \
+		byte *tmp;                                                     \
+		tmp = (byte *)(chunk);                                         \
 		tmp[sizeof(ChunkHeader) + (index >> 3)] |= 0x1 << (index & 7); \
 	} while (FALSE);
 
 #define UNSET_BITMAP(chunk, index)                         \
 	do {                                               \
-		byte *tmp;                        \
-		tmp = (byte *)(chunk);            \
+		byte *tmp;                                 \
+		tmp = (byte *)(chunk);                     \
 		tmp[sizeof(ChunkHeader) + (index >> 3)] &= \
 		    ~(0x1 << (index & 7));                 \
 	} while (FALSE);
 
-#define BITMAP_SIZE(slab_size)                              \
-	((((8 * CHUNK_SIZE - 8 * sizeof(ChunkHeader) - 7) / \
-	   (1 + 8 * (slab_size))) +                         \
-	  7) >>                                             \
-	 3)
+#define BITMAP_SIZE(slab_size)                                \
+	((((((8 * CHUNK_SIZE - 8 * sizeof(ChunkHeader) - 7) / \
+	     (1 + 8 * (slab_size))) +                         \
+	    7) >>                                             \
+	   3) +                                               \
+	  15) &                                               \
+	 ~15)
 
 #define BITMAP_CAPACITY(slab_size) \
 	((8 * CHUNK_SIZE - 8 * sizeof(ChunkHeader) - 7) / (1 + 8 * (slab_size)))
 
-#define BITMAP_PTR(chunk, index, slab_size)             \
-	((byte *)chunk + sizeof(ChunkHeader) + \
-	 BITMAP_SIZE(slab_size) + (index * slab_size))
+#define BITMAP_PTR(chunk, index, slab_size)                             \
+	((byte *)chunk + sizeof(ChunkHeader) + BITMAP_SIZE(slab_size) + \
+	 (index * slab_size))
 
 #define BITMAP_INDEX(ptr, chunk)                                       \
 	((((size_t)ptr) - (BITMAP_SIZE((chunk)->header.slab_size) +    \
@@ -99,32 +101,31 @@
 #define SLAB_INDEX(slab_size) \
 	(((sizeof(size_t) * 8 - 1) - __builtin_clzl(slab_size)) - 3)
 
-#define NEXT_FREE_BIT(chunk, max, result)                                    \
-	do {                                                                 \
-		(result) = (size_t) - 1;                                     \
-		if ((chunk) != NULL && (max) > 0) {                          \
-			uint64_t *bitmap =                                   \
-			    (uint64_t *)((byte *)(chunk) +          \
-					 sizeof(ChunkHeader));               \
-			size_t max_words = ((max) + 63) >> 6;                \
-			while (chunk->header.last_free < max_words) {        \
-				if (bitmap[chunk->header.last_free] !=       \
-				    0xFFFFFFFFFFFFFFFF) {                    \
-					uint64_t word =                      \
-					    bitmap[chunk->header.last_free]; \
-					size_t bit_value =                   \
-					    __builtin_ctzll(~word);          \
-					size_t index =                       \
-					    chunk->header.last_free * 64 +   \
-					    bit_value;                       \
-					if (index < max) {                   \
-						(result) = index;            \
-						break;                       \
-					}                                    \
-				}                                            \
-				chunk->header.last_free++;                   \
-			}                                                    \
-		}                                                            \
+#define NEXT_FREE_BIT(chunk, max, result)                                     \
+	do {                                                                  \
+		(result) = (size_t) - 1;                                      \
+		if ((chunk) != NULL && (max) > 0) {                           \
+			uint64_t *bitmap = (uint64_t *)((byte *)(chunk) +     \
+							sizeof(ChunkHeader)); \
+			size_t max_words = ((max) + 63) >> 6;                 \
+			while (chunk->header.last_free < max_words) {         \
+				if (bitmap[chunk->header.last_free] !=        \
+				    0xFFFFFFFFFFFFFFFF) {                     \
+					uint64_t word =                       \
+					    bitmap[chunk->header.last_free];  \
+					size_t bit_value =                    \
+					    __builtin_ctzll(~word);           \
+					size_t index =                        \
+					    chunk->header.last_free * 64 +    \
+					    bit_value;                        \
+					if (index < max) {                    \
+						(result) = index;             \
+						break;                        \
+					}                                     \
+				}                                             \
+				chunk->header.last_free++;                    \
+			}                                                     \
+		}                                                             \
 	} while (0)
 
 typedef struct Chunk Chunk;
@@ -136,6 +137,7 @@ typedef struct {
 	struct Chunk *prev;
 	uint64_t magic;
 	Lock lock;
+	byte padding[8];
 } ChunkHeader;
 
 struct Chunk {
@@ -270,8 +272,7 @@ STATIC void free_slab(void *ptr) {
 
 		size = BITMAP_SIZE(chunk->header.slab_size);
 		bitmap = (byte *)((size_t)chunk + sizeof(ChunkHeader));
-		bitmap64 = (uint64_t *)((byte *)(chunk) +
-					sizeof(ChunkHeader));
+		bitmap64 = (uint64_t *)((byte *)(chunk) + sizeof(ChunkHeader));
 
 		if (bitmap64[chunk->header.last_free]) return;
 		while (i < size)

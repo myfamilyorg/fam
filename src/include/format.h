@@ -1,5 +1,30 @@
-#ifndef _PRINT_H__
-#define _PRINT_H__
+/********************************************************************************
+ * MIT License
+ *
+ * Copyright (c) 2025 Christopher Gilliard
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *******************************************************************************/
+
+#ifndef _FORMAT_H__
+#define _FORMAT_H__
 
 #include <for_each.h>
 #include <types.h>
@@ -41,13 +66,13 @@
 	    Printable *: *(Printable *)arg,                                 \
 	    char *: (Printable){CSTR, {.cstring = (char *)arg}})
 
-#define format(f, fmt, ...)                                                   \
+#define $format(f, fmt, ...)                                                  \
 	do {                                                                  \
 		format_impl(f, fmt __VA_OPT__(, ) FOR_EACH(                   \
 				   TO_PRINTABLE, ignore, (, ), __VA_ARGS__)); \
 	} while (false);
 
-#define print(fmt, ...)                                                       \
+#define $print(fmt, ...)                                                      \
 	do {                                                                  \
 		Formatter __f = FORMATTER_INIT;                               \
 		format_impl(&__f,                                             \
@@ -56,13 +81,13 @@
 		write(1, __f.buf, __f.size);                                  \
 	} while (false);
 
-#define println(fmt, ...)                                                     \
+#define $println(fmt, ...)                                                    \
 	do {                                                                  \
+		Printable __p = {CSTR, {.cstring = "\n"}};                    \
 		Formatter __f = FORMATTER_INIT;                               \
 		format_impl(&__f,                                             \
 			    fmt __VA_OPT__(, ) FOR_EACH(TO_PRINTABLE, ignore, \
 							(, ), __VA_ARGS__));  \
-		Printable __p = {CSTR, {.cstring = "\n"}};                    \
 		format_impl(&__f, "{}", __p);                                 \
 		write(1, __f.buf, __f.size);                                  \
 	} while (false);
@@ -106,4 +131,4 @@ void formatter_clear(FormatterImpl *f);
 int format_impl(FormatterImpl *, const char *, ...);
 ssize_t formatter_to_string(const FormatterImpl *, char *out, size_t capacity);
 
-#endif /* _PRINT_H__ */
+#endif /* _FORMAT_H__ */
