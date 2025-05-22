@@ -38,6 +38,7 @@
 	    int32_t: (Printable){INT32, {.int128 = ((int128_t)arg)}},       \
 	    int64_t: (Printable){INT64, {.int128 = ((int128_t)arg)}},       \
 	    int128_t: (Printable){INT128, {.int128 = ((int128_t)arg)}},     \
+	    Printable *: *(Printable *)arg,                                 \
 	    char *: (Printable){CSTR, {.cstring = (char *)arg}})
 
 #define format(f, fmt, ...)                                                   \
@@ -78,6 +79,7 @@ typedef enum {
 	UINT64,
 	UINT128,
 	DOUBLE,
+	PRINTABLE,
 	CSTR
 } PrintType;
 

@@ -9,6 +9,7 @@ CFLAGS  = -fPIC \
           -Wno-long-long \
           -fno-stack-protector \
           -fno-builtin \
+	  -Wno-pointer-to-int-cast \
           -DSTATIC=static
 PRINT_CFLAGS = -fPIC \
                -pedantic \
@@ -20,7 +21,7 @@ PRINT_CFLAGS = -fPIC \
                -fno-stack-protector \
                -fno-builtin \
                -DSTATIC=static
-TFLAGS  = -g -Wno-overflow
+TFLAGS  = -g -Wno-overflow -Wno-pointer-to-int-cast
 LDFLAGS = -shared
 
 # Directories

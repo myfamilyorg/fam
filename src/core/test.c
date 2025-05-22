@@ -35,6 +35,6 @@ Test(core, test_fmt1) {
 	println("testing123 {} ok", ((uint32_t)921));
 	print("test: ");
 	println("ok");
-	// Printable p = {.value.d = 12.3, .pt = DOUBLE};
-	println("float val = {}.", 1);
+	Printable p = {.value.d = 12.3, .pt = DOUBLE};
+	println("float val = {}.", 1, &p);
 }
