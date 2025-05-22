@@ -6,6 +6,26 @@
 
 #define FORMATTER_INIT {.buf = NULL, .capacity = 0, .size = 0}
 
+#define PRINTABLE_CSTR(arg)                        \
+	(Printable) {                              \
+		CSTR, { .cstring = (char *)(arg) } \
+	}
+#define PRINTABLE_DOUBLE(arg)                                             \
+	({                                                                \
+		Printable _p;                                             \
+		_Generic((arg),                                           \
+		    double: ({                                            \
+				 uint64_t u;                              \
+				 memcpy(&u, &(arg), sizeof(uint64_t));    \
+				 _p = (Printable){DOUBLE, {.d = u}};      \
+				 _p;                                      \
+			 }),                                              \
+		    default: ({                                           \
+				 _p = (Printable){CSTR, {.cstring = ""}}; \
+				 _p;                                      \
+			 }))                                              \
+	})
+
 #define TO_PRINTABLE(ignore, arg)                                           \
 	_Generic((arg),                                                     \
 	    uint8_t: (Printable){UINT8, {.uint128 = ((uint128_t)arg)}},     \
@@ -18,8 +38,8 @@
 	    int32_t: (Printable){INT32, {.int128 = ((int128_t)arg)}},       \
 	    int64_t: (Printable){INT64, {.int128 = ((int128_t)arg)}},       \
 	    int128_t: (Printable){INT128, {.int128 = ((int128_t)arg)}},     \
-	    char *: (Printable){CSTR, {.cstring = ((char *)arg)}},          \
-	    const char *: (Printable){CSTR, {.cstring = ((char *)arg)}})
+	    char *: (Printable){CSTR, {.cstring = (char *)arg}},            \
+	    Printable *: arg)
 
 #define format(f, fmt, ...)                                                   \
 	do {                                                                  \
