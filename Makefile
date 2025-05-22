@@ -9,6 +9,7 @@ CFLAGS  = -fPIC \
           -Wno-long-long \
           -fno-stack-protector \
           -fno-builtin \
+	  -ffreestanding \
 	  -Wno-pointer-to-int-cast \
           -DSTATIC=static
 PRINT_CFLAGS = -fPIC \

@@ -251,3 +251,32 @@ size_t double_to_string(char *buf, double v, int max_decimals) {
 	buf[pos] = '\0';
 	return pos;
 }
+
+__uint128_t __udivti3(__uint128_t a, __uint128_t b) {
+	int shift;
+	__uint128_t quotient, remainder;
+	if (b == 0) return 0; /* Avoid division by zero */
+	if (a < b) return 0;  /* Early exit if dividend < divisor */
+
+	quotient = 0;
+	remainder = a;
+	shift = 0;
+
+	/* Normalize divisor: shift left until highest bit is 1 */
+	while (b < ((__uint128_t)1 << 127)) {
+		b <<= 1;
+		shift++;
+	}
+
+	/* Long division */
+	while (shift >= 0) {
+		if (remainder >= b) {
+			remainder -= b;
+			quotient |= (__uint128_t)1 << shift;
+		}
+		b >>= 1;
+		shift--;
+	}
+
+	return quotient;
+}
