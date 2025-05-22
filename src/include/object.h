@@ -30,10 +30,18 @@
 #include <types.h>
 #include <vtable.h>
 
+typedef struct ObjectImpl ObjectImpl;
+
 typedef struct {
+	const char *type_name;
+	void (*drop)(const ObjectImpl *);
+} TypeDescriptor;
+
+struct ObjectImpl {
 	void *vtable;
 	void *data;
-} ObjectImpl;
+	TypeDescriptor descriptor;
+};
 
 void object_cleanup(const ObjectImpl *obj);
 #define Object ObjectImpl __attribute((cleanup(object_cleanup)))
@@ -42,14 +50,22 @@ void object_set_vtable(const ObjectImpl *obj, void *vtable);
 
 #define let const Object
 #define var Object
+#define CATI(x, y) x##y
+#define CAT(x, y) CATI(x, y)
+#define DECLARE_WEAK_DROP(type) \
+	void type##_drop(const ObjectImpl *) __attribute__((weak))
 
-#define $object(...)                                    \
-	({                                              \
-		typeof(__VA_ARGS__) *_data__ =          \
-		    alloc(sizeof(typeof(__VA_ARGS__))); \
-		*_data__ = __VA_ARGS__;                 \
-		ObjectImpl _ret__ = {.data = _data__};  \
-		_ret__;                                 \
+#define $object(type, ...)                                                    \
+	({                                                                    \
+		void *_drop_ptr__ = CAT(type, _drop);                         \
+		typeof(__VA_ARGS__) *_data__ = alloc(sizeof(type));           \
+		*_data__ = (type)(__VA_ARGS__);                               \
+		ObjectImpl _ret__ = {                                         \
+		    .data = _data__,                                          \
+		    .descriptor = {.drop = _drop_ptr__, .type_name = #type}}; \
+		_ret__;                                                       \
 	})
+
+#define $drop(type) void type##_drop(const ObjectImpl *obj)
 
 #endif /* _OBJECT_H__ */

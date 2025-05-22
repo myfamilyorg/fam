@@ -40,7 +40,8 @@ Test(core, test_fmt1) {
 	$println("float val = {}. str = {}, int = {}", &p, "test", 123);
 }
 
-// Display trait (use macro to generate)
+// Display trait (use macro or external script to generate - inputs are function
+// signatures and trait name)
 typedef struct {
 	void (*doprint)(const ObjectImpl *);
 } Display;
@@ -49,7 +50,7 @@ void doprint(const ObjectImpl *obj) {
 	((Display *)(obj->vtable))->doprint(obj);
 }
 
-// Speak trait (use macro to generate)
+// Speak trait (use macro or external script to generate)
 typedef struct {
 	void (*speak)(const ObjectImpl *);
 } Speak;
@@ -62,23 +63,28 @@ typedef struct {
 	int y;
 } MyType;
 
-// Trait impl display (user defined)
-void print_my_type(const ObjectImpl *my_type) {
+// user must declare a drop handler. Can do nothing $drop(MyType) {}.
+$drop(MyType) { $println("drop"); }
+
+// Trait impl display (user defined) - will create macros to improve member
+// access
+void MyType_print(const ObjectImpl *my_type) {
 	$println("x={},y={}", ((MyType *)(my_type->data))->x,
 		 ((MyType *)(my_type->data))->y);
 }
 
-// macro to create based on trait, type and function names
-static Display MyTypeDisplay = {.doprint = print_my_type};
+// macro to create based on trait, type and function names ->
+// $trait_impl(MyType, Display)
+static Display MyTypeDisplay = {.doprint = MyType_print};
 
 // Trait impl speak (user defined)
-void speak_my_type(const ObjectImpl *my_type) { $println("woof!"); }
+void MyType_speak(const ObjectImpl *my_type) { $println("woof!"); }
 
-// macro to create based on trait, type and function names
-static Speak MyTypeSpeak = {.speak = speak_my_type};
+// macro to create based on trait and type
+static Speak MyTypeSpeak = {.speak = MyType_speak};
 
 Test(core, test_obj1) {
-	let test = $object((MyType){.x = 4, .y = 9});
+	let test = $object(MyType, (MyType){.x = 4, .y = 9});
 	object_set_vtable(&test, &MyTypeDisplay);
 	doprint(&test);
 	object_set_vtable(&test, &MyTypeSpeak);
