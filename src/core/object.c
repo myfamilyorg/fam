@@ -1,14 +1,38 @@
+/********************************************************************************
+ * MIT License
+ *
+ * Copyright (c) 2025 Christopher Gilliard
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *******************************************************************************/
+
 #include <alloc.h>
-#include <format.h>
 #include <misc.h>
 #include <object.h>
 
+#define BOX_MASK 0x0
 #define UINT_MASK 0x1
 #define INT_MASK 0x2
 #define FLOAT_MASK 0x3
 #define BOOL_MASK 0x4
 #define ERR_MASK 0x5
-#define BOX_MASK 0x0
 
 #define UNMASK 0x7
 
@@ -41,7 +65,7 @@ void object_cleanup(const ObjectImpl *obj) {
 
 ObjectType object_type(const ObjectImpl *obj) {
 	ObjectData *objdata = (ObjectData *)obj;
-	uint64_t tag = (uint64_t)objdata->vtable & 0x7;
+	uint64_t tag = (uint64_t)objdata->vtable & UNMASK;
 	switch (tag) {
 		case BOOL_MASK:
 			return ObjectTypeBool;
@@ -53,10 +77,7 @@ ObjectType object_type(const ObjectImpl *obj) {
 			return ObjectTypeFloat;
 		case ERR_MASK:
 			return ObjectTypeErr;
-		case BOX_MASK:
-			return ObjectTypeBox;
 		default:
-			$println("Unknown type");
 			return ObjectTypeBox;
 	}
 }
@@ -117,15 +138,16 @@ void object_set_vtable(const ObjectImpl *obj, void *table) {
 	uint64_t tag;
 	if (!obj) return;
 	data = (ObjectData *)(uint64_t)(obj);
-	tag = (uint64_t)data->vtable->table & 0x7;
+	tag = (uint64_t)data->vtable->table & UNMASK;
 	data->vtable->table = (Vtable *)((uint64_t)table | tag);
 }
 
 void *object_get_vtable(const ObjectImpl *obj) {
 	ObjectData *data = NULL;
+	Vtable *vtable = NULL;
 	if (!obj) return NULL;
 	data = (ObjectData *)(uint64_t)(obj);
-	Vtable *vtable = (Vtable *)((uint64_t)data->vtable & ~0x7);
+	vtable = (Vtable *)((uint64_t)data->vtable & ~UNMASK);
 	return vtable->table;
 }
 
