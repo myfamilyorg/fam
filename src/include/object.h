@@ -45,7 +45,7 @@ void object_cleanup(const ObjectImpl *obj);
 
 typedef struct {
 	const char *type_name;
-	void (*drop)(const ObjectImpl *);
+	void (*drop)(ObjectImpl *);
 } TypeDescriptor;
 
 typedef struct {

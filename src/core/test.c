@@ -25,6 +25,7 @@
 
 #include <alloc.h>
 #include <criterion/criterion.h>
+#include <display.h>
 #include <error.h>
 #include <format.h>
 #include <object.h>
@@ -142,17 +143,16 @@ void speak(const ObjectImpl *obj) {
 	((Speak *)vtable)->speak(obj);
 }
 
+// @trait Speak {
+//     fn speak(&self);
+// }
+
 // Define type
 typedef struct {
 	int32_t a;
 	uint64_t b;
 } MyStruct;
-
-void MyStruct_drop(const ObjectImpl *obj) { $println("drop MyStruct"); }
-
-void MyStruct_speak(const ObjectImpl *obj) { $println("bark"); }
-
-static Speak MyStruct_Speak = {.speak = MyStruct_speak};
+void MyStruct_drop(ObjectImpl *obj);
 
 static Vtable MyStruct_Vtable = {
     .descriptor =
@@ -164,12 +164,35 @@ static Vtable MyStruct_Vtable = {
 
 };
 
+// @type MyStruct {
+// 	a: u32,
+// 	b: u64,
+// }
+
+void MyStruct_speak(const ObjectImpl *obj);
+static Speak MyStruct_Speak = {.speak = MyStruct_speak};
+// @impl Speak MyStruct;
+
+void MyStruct_drop(ObjectImpl *obj) { $println("drop MyStruct"); }
+// @impl Drop MyStruct {
+//     fn drop(&mut self) {
+//     	    @out("drop MyStruct");
+//     }
+// }
+
+void MyStruct_speak(const ObjectImpl *obj) { $println("bark"); }
+// @impl Speak MyStruct {
+//     fn speak(&self) {
+//          @out("drop MyStruct");
+//     }
+// }
+
 Test(core, obj2) {
 	let ms1 = $object(MyStruct, (MyStruct){.a = 4, .b = 7});
-	object_set_vtable(&ms1, &MyStruct_Speak);
-	$println("0 {}", (uint64_t)&MyStruct_Speak);
+	// let ms1 = @MyStruct {.a=4, .b=7};
+	object_set_vtable(&ms1, &MyStruct_Speak);  // <-- inferred
 	speak(&ms1);
-	$println("1");
+	// ms1.speak(); or maybe @speak(ms1);
 	object_cleanup(&ms1);
 	object_cleanup(&ms1);
 }

@@ -55,7 +55,8 @@ void object_cleanup(const ObjectImpl *obj) {
 			void *type_data = NULL;
 			ObjectData *data = (ObjectData *)(uint64_t)(obj);
 			if (data->value.data) {
-				data->vtable->descriptor.drop(obj);
+				ObjectImpl *obj_mut = (ObjectImpl *)obj;
+				data->vtable->descriptor.drop(obj_mut);
 				release(type_data);
 				data->value.data = NULL;
 			}
