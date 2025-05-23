@@ -28,44 +28,44 @@
 
 #include <alloc.h>
 #include <types.h>
-#include <vtable.h>
 
-typedef struct ObjectImpl ObjectImpl;
+typedef enum {
+	ObjectTypeUint,
+	ObjectTypeInt,
+	ObjectTypeFloat,
+	ObjectTypeBool,
+	ObjectTypeErr,
+	ObjectTypeBox
+} ObjectType;
+
+typedef uint128_t ObjectImpl;
+void object_cleanup(const ObjectImpl *obj);
+#define Object ObjectImpl __attribute((cleanup(object_cleanup)))
 
 typedef struct {
 	const char *type_name;
 	void (*drop)(const ObjectImpl *);
 } TypeDescriptor;
 
-struct ObjectImpl {
-	void *vtable;
-	void *data;
+typedef struct {
 	TypeDescriptor descriptor;
-};
+	void *table;
+} Vtable;
 
-void object_cleanup(const ObjectImpl *obj);
-#define Object ObjectImpl __attribute((cleanup(object_cleanup)))
-
-void object_set_vtable(const ObjectImpl *obj, void *vtable);
+ObjectType object_type(const ObjectImpl *obj);
+ObjectImpl object_create_uint(uint64_t value);
+ObjectImpl object_create_int(int64_t value);
+ObjectImpl object_create_float(double value);
+ObjectImpl object_create_bool(bool value);
+ObjectImpl object_create_err(int code);
+ObjectImpl object_create_boxed(Vtable *vtable, void *data);
+void object_set_vtable(const ObjectImpl *obj, Vtable *vtable);
+Vtable *object_get_vtable(const ObjectImpl *obj);
+void *object_get_data(const ObjectImpl *obj);
+void *resize_data(const ObjectImpl *obj, size_t nsize);
 
 #define let const Object
 #define var Object
-#define CATI(x, y) x##y
-#define CAT(x, y) CATI(x, y)
-#define DECLARE_WEAK_DROP(type) \
-	void type##_drop(const ObjectImpl *) __attribute__((weak))
-
-#define $object(type, ...)                                                    \
-	({                                                                    \
-		void *_drop_ptr__ = CAT(type, _drop);                         \
-		typeof(__VA_ARGS__) *_data__ = alloc(sizeof(type));           \
-		*_data__ = (type)(__VA_ARGS__);                               \
-		ObjectImpl _ret__ = {                                         \
-		    .data = _data__,                                          \
-		    .descriptor = {.drop = _drop_ptr__, .type_name = #type}}; \
-		_ret__;                                                       \
-	})
-
-#define $drop(type) void type##_drop(const ObjectImpl *obj)
 
 #endif /* _OBJECT_H__ */
+

@@ -31,7 +31,7 @@ int err = 0;
 
 int *__error(void) { return &err; }
 
-int perror(const char *s) {
+int print_error(const char *s) {
 	int len = 0, v = 2;
 	const char *err_msg;
 

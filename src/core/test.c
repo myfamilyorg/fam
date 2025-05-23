@@ -1,5 +1,6 @@
 #include <alloc.h>
 #include <criterion/criterion.h>
+#include <error.h>
 #include <format.h>
 #include <object.h>
 
@@ -40,6 +41,71 @@ Test(core, test_fmt1) {
 	$println("float val = {}. str = {}, int = {}", &p, "test", 123);
 }
 
+void drop_nop(const ObjectImpl *obj) { $println("nop drop"); }
+
+typedef struct {
+	void (*print)(const ObjectImpl *);
+} Display;
+
+void doprint(const ObjectImpl *obj) {
+	/*ObjectBoxed *boxed = (ObjectBoxed *)obj;
+	((Display *)(boxed->vtable))->print(obj);
+	*/
+}
+
+typedef struct {
+	int x;
+	int y;
+} MyType;
+
+void MyType_print(const ObjectImpl *obj) {
+	MyType *v = object_get_data(obj);
+	$println("x={},y={}", v->x, v->y);
+}
+
+static Display MyTypeDisplay = {.print = MyType_print};
+
+static Vtable test_table = {
+    .descriptor =
+	{
+	    .type_name = "mytype",
+	    .drop = drop_nop,
+	},
+    .table = &MyTypeDisplay,
+
+};
+
+void print(const ObjectImpl *obj) {
+	Vtable *vtable = object_get_vtable(obj);
+	$println("vtable={},tab={}", (uint64_t)vtable, (uint64_t)&test_table);
+	((Display *)vtable->table)->print(obj);
+}
+
+Test(core, object1) {
+	let a = object_create_uint(1234);
+	let b = object_create_int(-100);
+	let c = object_create_float(1.23);
+	let d = object_create_bool(false);
+	let e = object_create_err(EINVAL);
+
+	MyType *x = alloc(sizeof(MyType));
+	$println("x in = {}", (uint64_t)x);
+	x->x = 123;
+	x->y = -10;
+	let f = object_create_boxed(&test_table, x);
+	object_set_vtable(&f, &test_table);
+	print(&f);
+
+	$println("{} {}", object_type(&c), ObjectTypeFloat);
+	cr_assert_eq(object_type(&a), ObjectTypeUint);
+	cr_assert_eq(object_type(&b), ObjectTypeInt);
+	cr_assert_eq(object_type(&c), ObjectTypeFloat);
+	cr_assert_eq(object_type(&d), ObjectTypeBool);
+	cr_assert_eq(object_type(&e), ObjectTypeErr);
+	cr_assert_eq(object_type(&f), ObjectTypeBox);
+}
+
+/*
 // Display trait (use macro or external script to generate - inputs are function
 // signatures and trait name)
 typedef struct {
@@ -90,3 +156,4 @@ Test(core, test_obj1) {
 	object_set_vtable(&test, &MyTypeSpeak);
 	speak(&test);
 }
+*/

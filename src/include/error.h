@@ -162,6 +162,6 @@
 extern int err;
 
 const char *error_string(int err_code);
-int perror(const char *);
+int print_error(const char *);
 
 #endif /* _ERROR_H__ */
