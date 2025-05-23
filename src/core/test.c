@@ -41,6 +41,8 @@ Test(core, test_fmt1) {
 	$println("float val = {}. str = {}, int = {}", &p, "test", 123);
 }
 
+/*
+
 void drop_nop(const ObjectImpl *obj) { $println("nop drop"); }
 
 typedef struct {
@@ -48,9 +50,9 @@ typedef struct {
 } Display;
 
 void doprint(const ObjectImpl *obj) {
-	/*ObjectBoxed *boxed = (ObjectBoxed *)obj;
+	ObjectBoxed *boxed = (ObjectBoxed *)obj;
 	((Display *)(boxed->vtable))->print(obj);
-	*/
+
 }
 
 typedef struct {
@@ -77,7 +79,6 @@ static Vtable test_table = {
 
 void print(const ObjectImpl *obj) {
 	Vtable *vtable = object_get_vtable(obj);
-	$println("vtable={},tab={}", (uint64_t)vtable, (uint64_t)&test_table);
 	((Display *)vtable->table)->print(obj);
 }
 
@@ -103,6 +104,49 @@ Test(core, object1) {
 	cr_assert_eq(object_type(&d), ObjectTypeBool);
 	cr_assert_eq(object_type(&e), ObjectTypeErr);
 	cr_assert_eq(object_type(&f), ObjectTypeBox);
+}
+*/
+
+// Define Trait
+typedef struct {
+	void (*speak)(const ObjectImpl *);
+} Speak;
+
+void speak(const ObjectImpl *obj) {
+	Vtable *vtable = object_get_vtable(obj);
+	((Speak *)vtable)->speak(obj);
+}
+
+// Define type
+typedef struct {
+	int32_t a;
+	uint64_t b;
+} MyStruct;
+
+void MyStruct_drop(const ObjectImpl *obj) { $println("drop MyStruct"); }
+
+void MyStruct_speak(const ObjectImpl *obj) { $println("bark"); }
+
+static Speak MyStructSpeak = {.speak = MyStruct_speak};
+
+static Vtable MyStructVtable = {
+    .descriptor =
+	{
+	    .type_name = "MyStruct",
+	    .drop = MyStruct_drop,
+	},
+    .table = NULL,
+
+};
+
+Test(core, obj2) {
+	let ms1 = $object(MyStruct, (MyStruct){.a = 4, .b = 7});
+	object_set_vtable(&ms1, &MyStructSpeak);
+	$println("0 {}", (uint64_t)&MyStructSpeak);
+	speak(&ms1);
+	$println("1");
+	object_cleanup(&ms1);
+	object_cleanup(&ms1);
 }
 
 /*

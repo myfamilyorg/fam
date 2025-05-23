@@ -28,14 +28,11 @@ void object_cleanup(const ObjectImpl *obj) {
 	if (obj) {
 		ObjectType t = object_type(obj);
 		if (t == ObjectTypeBox) {
-			void *data = NULL;
-			Vtable *table = object_get_vtable(obj);
-			table->descriptor.drop(obj);
-			data = object_get_data(obj);
-			if (data) {
-				ObjectData *data = NULL;
-				release(data);
-				data = (ObjectData *)(uint64_t)(obj);
+			void *type_data = NULL;
+			ObjectData *data = (ObjectData *)(uint64_t)(obj);
+			if (data->value.data) {
+				data->vtable->descriptor.drop(obj);
+				release(type_data);
 				data->value.data = NULL;
 			}
 		}
@@ -115,20 +112,21 @@ ObjectImpl object_create_boxed(Vtable *vtable, void *data) {
 	return u.impl;
 }
 
-void object_set_vtable(const ObjectImpl *obj, Vtable *vtable) {
+void object_set_vtable(const ObjectImpl *obj, void *table) {
 	ObjectData *data = NULL;
 	uint64_t tag;
 	if (!obj) return;
 	data = (ObjectData *)(uint64_t)(obj);
-	tag = (uint64_t)data->vtable & 0x7;
-	data->vtable = (Vtable *)((uint64_t)vtable | tag);
+	tag = (uint64_t)data->vtable->table & 0x7;
+	data->vtable->table = (Vtable *)((uint64_t)table | tag);
 }
 
-Vtable *object_get_vtable(const ObjectImpl *obj) {
+void *object_get_vtable(const ObjectImpl *obj) {
 	ObjectData *data = NULL;
 	if (!obj) return NULL;
 	data = (ObjectData *)(uint64_t)(obj);
-	return (Vtable *)((uint64_t)data->vtable & ~0x7);
+	Vtable *vtable = (Vtable *)((uint64_t)data->vtable & ~0x7);
+	return vtable->table;
 }
 
 void *object_get_data(const ObjectImpl *obj) {

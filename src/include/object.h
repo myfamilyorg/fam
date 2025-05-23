@@ -59,13 +59,27 @@ ObjectImpl object_create_float(double value);
 ObjectImpl object_create_bool(bool value);
 ObjectImpl object_create_err(int code);
 ObjectImpl object_create_boxed(Vtable *vtable, void *data);
-void object_set_vtable(const ObjectImpl *obj, Vtable *vtable);
-Vtable *object_get_vtable(const ObjectImpl *obj);
+void object_set_vtable(const ObjectImpl *obj, void *table);
+void *object_get_vtable(const ObjectImpl *obj);
 void *object_get_data(const ObjectImpl *obj);
 void *resize_data(const ObjectImpl *obj, size_t nsize);
 
 #define let const Object
 #define var Object
+
+#define CATI(x, y) x##y
+#define CAT(x, y) CATI(x, y)
+
+#define $object(type, ...)                                            \
+	({                                                            \
+		typeof(__VA_ARGS__) *_data__ = alloc(sizeof(type));   \
+		*_data__ = (type)(__VA_ARGS__);                       \
+		ObjectImpl _ret__ =                                   \
+		    object_create_boxed(&CAT(type, Vtable), _data__); \
+		_ret__;                                               \
+	})
+
+#define $drop(type) void type##_drop(const ObjectImpl *obj)
 
 #endif /* _OBJECT_H__ */
 
