@@ -1,6 +1,6 @@
 CC      = clang
 CFLAGS  = -fPIC \
-          -std=c89 \
+          -std=c99 \
           -pedantic \
           -Wall \
           -Wextra \
@@ -66,7 +66,7 @@ $(LIBDIR)/libfam.so: $(OBJECTS) | $(LIBDIR)
 $(TEST_BIN): $(TEST_OBJ) $(LIBDIR)/libfam.so | $(BINDIR)
 	$(CC) -Wno-overflow -lcriterion -I$(INCLDIR) $(TEST_OBJ) -L$(LIBDIR) -lfam -o $@
 
-# Formatting requires __VA_OPT__ so to supress warnings we disable -std=c89 for this file.
+# Formatting requires __VA_OPT__ so to supress warnings we disable -std for this file.
 $(OBJDIR)/format.o: $(SRCDIR)/core/format.c $(INCLDIR)/format.h | $(OBJDIR)
 	$(CC) -I$(INCLDIR) $(PRINT_CFLAGS) -c $< -o $@
 

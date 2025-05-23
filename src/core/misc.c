@@ -125,23 +125,25 @@ size_t uint128_t_to_string(char *buf, __uint128_t v) {
 }
 
 size_t int128_t_to_string(char *buf, __int128_t v) {
-	int is_negative = v < 0;
-	size_t len = 0;
-	__uint128_t abs_v;
+	 #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Woverflow"
+    const __int128_t int128_min = -((__int128_t)1 << 127);
+    #pragma GCC diagnostic pop
+    const __uint128_t int128_min_abs = (__uint128_t)0x8000000000000000ULL << 64;
 
-	const __int128_t int128_min = -((__int128_t)1 << 127);
-	const __uint128_t int128_min_abs = (__uint128_t)1 << 127;
+    int is_negative = v < 0;
+    __uint128_t abs_v;
 
-	if (is_negative) {
-		buf[0] = '-';
-		buf++;
-		abs_v = v == int128_min ? int128_min_abs : (__uint128_t)(-v);
-	} else {
-		abs_v = (__uint128_t)v;
-	}
+    if (is_negative) {
+        *buf = '-';
+        buf++;
+        abs_v = v == int128_min ? int128_min_abs : (__uint128_t)(-v);
+    } else {
+        abs_v = (__uint128_t)v;
+    }
 
-	len = uint128_t_to_string(buf, abs_v);
-	return is_negative ? len + 1 : len;
+    size_t len = uint128_t_to_string(buf, abs_v);
+    return is_negative ? len + 1 : len;
 }
 
 /* Convert a double to a decimal string in buf.
