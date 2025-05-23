@@ -15,6 +15,7 @@ CFLAGS  = -fPIC \
 	  -Wno-dollar-in-identifier-extension \
 	  -Wno-gnu-zero-variadic-macro-arguments \
 	  -Wno-c99-extensions \
+	  -Wno-ignored-attributes \
           -DSTATIC=static
 PRINT_CFLAGS = -fPIC \
                -pedantic \
@@ -26,15 +27,16 @@ PRINT_CFLAGS = -fPIC \
                -fno-stack-protector \
                -fno-builtin \
 	       -Wno-dollar-in-identifier-extension \
+	       -Wno-ignored-attributes \
                -DSTATIC=static
-TFLAGS  = -g -Wno-overflow -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+TFLAGS  = -g -Wno-overflow -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast -Wno-ignored-attributes
 LDFLAGS = -shared
 
 # Directories
 OBJDIR  = .obj
 TOBJDIR = .tobj
 LIBDIR  = lib
-BINDIR  = .
+BINDIR  = bin
 INCLDIR = src/include
 SRCDIR  = src
 
