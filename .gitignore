@@ -2,4 +2,5 @@
 .obj/*
 .tobj/*
 lib/*
+bin/*
 runtests
