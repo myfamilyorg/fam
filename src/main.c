@@ -43,7 +43,7 @@ static int strcmp_func(const void *a, const void *b) {
 }
 
 int need_compile(const char *obj_path, const char *src_path, char **headers,
-		 int num_headers) {
+		 int num_headers, const char *root_dir) {
 	struct stat obj_stat;
 	if (stat(obj_path, &obj_stat) != 0) return 1;  // no obj, compile
 	time_t obj_mtime = obj_stat.st_mtime;
@@ -56,9 +56,9 @@ int need_compile(const char *obj_path, const char *src_path, char **headers,
 	if (src_stat.st_mtime > obj_mtime) return 1;
 
 	for (int j = 0; j < num_headers; j++) {
-		char header_path[256];
-		snprintf(header_path, sizeof(header_path), "src/%s",
-			 headers[j]);
+		char header_path[1024];
+		snprintf(header_path, sizeof(header_path), "%s/src/%s",
+			 root_dir, headers[j]);
 		struct stat h_stat;
 		if (stat(header_path, &h_stat) != 0) {
 			fprintf(stderr, "Missing header file: %s\n",
@@ -86,12 +86,18 @@ int need_link(const char *lib_path, char **obj_paths, int num_objs) {
 }
 
 int main(int argc, char *argv[]) {
-	if (argc < 2) {
-		fprintf(stderr, "Usage: %s <toml_file>\n", argv[0]);
+	char *root_dir = ".";
+	if (argc == 3 && strcmp(argv[1], "-d") == 0) {
+		root_dir = argv[2];
+	} else if (argc != 1) {
+		fprintf(stderr, "Usage: %s [-d <directory>]\n", argv[0]);
 		return 1;
 	}
 
-	FILE *fp = fopen(argv[1], "r");
+	char toml_path[1024];
+	snprintf(toml_path, sizeof(toml_path), "%s/fam.toml", root_dir);
+
+	FILE *fp = fopen(toml_path, "r");
 	if (!fp) {
 		perror("fopen");
 		return 1;
@@ -258,7 +264,10 @@ int main(int argc, char *argv[]) {
 	const char *ldflags =
 	    "-shared -nostdlib -ffreestanding -fvisibility=hidden";
 
-	system("mkdir -p ./target/objs ./target/lib");
+	char mkdir_cmd[1024];
+	snprintf(mkdir_cmd, sizeof(mkdir_cmd),
+		 "mkdir -p %s/target/objs %s/target/lib", root_dir, root_dir);
+	system(mkdir_cmd);
 
 	char **obj_paths = malloc(proj.num_objs * sizeof(char *));
 	for (int i = 0; i < proj.num_objs; i++) {
@@ -269,14 +278,16 @@ int main(int argc, char *argv[]) {
 		if (dot && strcmp(dot, ".c") == 0) {
 			*dot = 0;
 		}
-		obj_paths[i] = malloc(256);
-		snprintf(obj_paths[i], 256, "./target/objs/%s.o", oname);
+		obj_paths[i] = malloc(1024);
+		snprintf(obj_paths[i], 1024, "%s/target/objs/%s.o", root_dir,
+			 oname);
 
-		char src_path[256];
-		snprintf(src_path, sizeof(src_path), "src/%s", o.name);
+		char src_path[1024];
+		snprintf(src_path, sizeof(src_path), "%s/src/%s", root_dir,
+			 o.name);
 
 		if (!need_compile(obj_paths[i], src_path, o.headers,
-				  o.num_headers)) {
+				  o.num_headers, root_dir)) {
 			continue;
 		}
 
@@ -296,17 +307,19 @@ int main(int argc, char *argv[]) {
 			}
 			if (is_unique) {
 				unique_headers[unique_count++] = o.headers[j];
-				char include[256];
+				char include[1024];
 				snprintf(include, sizeof(include),
-					 " -include src/%s", o.headers[j]);
+					 " -include %s/src/%s", root_dir,
+					 o.headers[j]);
 				strncat(cmd, include,
 					sizeof(cmd) - strlen(cmd) - 1);
 			}
 		}
 
-		char src[256], obj[256];
-		snprintf(src, sizeof(src), " -c src/%s", o.name);
-		snprintf(obj, sizeof(obj), " -o ./target/objs/%s.o", oname);
+		char src[1024], obj[1024];
+		snprintf(src, sizeof(src), " -c %s/src/%s", root_dir, o.name);
+		snprintf(obj, sizeof(obj), " -o %s/target/objs/%s.o", root_dir,
+			 oname);
 		strncat(cmd, src, sizeof(cmd) - strlen(cmd) - 1);
 		strncat(cmd, obj, sizeof(cmd) - strlen(cmd) - 1);
 
@@ -317,14 +330,14 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	char lib_path[256];
-	snprintf(lib_path, sizeof(lib_path), "./target/lib/lib%s.so",
+	char lib_path[1024];
+	snprintf(lib_path, sizeof(lib_path), "%s/target/lib/lib%s.so", root_dir,
 		 proj.name);
 
 	if (need_link(lib_path, obj_paths, proj.num_objs)) {
 		qsort(obj_paths, proj.num_objs, sizeof(char *), strcmp_func);
 
-		char linkcmd[4096] = {0};
+		char linkcmd[8192] = {0};
 		snprintf(linkcmd, sizeof(linkcmd), "%s %s -o %s", cc, ldflags,
 			 lib_path);
 		for (int i = 0; i < proj.num_objs; i++) {
