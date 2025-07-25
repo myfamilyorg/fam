@@ -59,7 +59,7 @@ int need_compile(const char *obj_path, const char *src_path, char **headers,
 
 	for (int j = 0; j < num_headers; j++) {
 		char header_path[1024];
-		snprintf(header_path, sizeof(header_path), "%s/src/%s",
+		snprintf(header_path, sizeof(header_path), "%s/src/include/%s",
 			 root_dir, headers[j]);
 		struct stat h_stat;
 		if (stat(header_path, &h_stat) != 0) {
@@ -326,7 +326,7 @@ int main(int argc, char *argv[]) {
 		snprintf(obj_paths[i], 1024, "%s/%s.o", objs_dir, oname);
 
 		char src_path[1024];
-		snprintf(src_path, sizeof(src_path), "%s/src/%s", root_dir,
+		snprintf(src_path, sizeof(src_path), "%s/src/c/%s", root_dir,
 			 o.name);
 
 		if (!need_compile(obj_paths[i], src_path, o.headers,
@@ -352,15 +352,15 @@ int main(int argc, char *argv[]) {
 				unique_headers[unique_count++] = o.headers[j];
 				char include[1024];
 				snprintf(include, sizeof(include),
-					 " -include %s/src/%s", root_dir,
-					 o.headers[j]);
+					 " -include %s/src/include/%s",
+					 root_dir, o.headers[j]);
 				strncat(cmd, include,
 					sizeof(cmd) - strlen(cmd) - 1);
 			}
 		}
 
 		char src[1024], obj[1024];
-		snprintf(src, sizeof(src), " -c %s/src/%s", root_dir, o.name);
+		snprintf(src, sizeof(src), " -c %s/src/c/%s", root_dir, o.name);
 		snprintf(obj, sizeof(obj), " -o %s", obj_paths[i]);
 		strncat(cmd, src, sizeof(cmd) - strlen(cmd) - 1);
 		strncat(cmd, obj, sizeof(cmd) - strlen(cmd) - 1);
@@ -468,7 +468,7 @@ int main(int argc, char *argv[]) {
 					    public_headers[j];
 					char include[1024];
 					snprintf(include, sizeof(include),
-						 " -include %s/src/%s",
+						 " -include %s/src/include/%s",
 						 root_dir, public_headers[j]);
 					strncat(cmd, include,
 						sizeof(cmd) - strlen(cmd) - 1);
