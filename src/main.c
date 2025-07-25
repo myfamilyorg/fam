@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 struct Obj {
 	char *name;
@@ -174,6 +175,18 @@ int main(int argc, char *argv[]) {
 						"Parse error: expected {\n");
 					return 1;
 				}
+				if (in_obj) {
+					if (proj.num_objs >=
+					    proj.objs_capacity) {
+						proj.objs_capacity += 5;
+						proj.objs = realloc(
+						    proj.objs,
+						    proj.objs_capacity *
+							sizeof(struct Obj));
+					}
+					proj.objs[proj.num_objs++] =
+					    current_obj;
+				}
 				in_obj = 1;
 				memset(&current_obj, 0, sizeof(current_obj));
 				current_obj.headers_capacity = 10;
@@ -210,20 +223,25 @@ int main(int argc, char *argv[]) {
 		char cmd[8192] = {0};
 		snprintf(cmd, sizeof(cmd), "%s %s", cc, cflags);
 
-		const char *known_headers[] = {"types.H", "errno.H",
-					       "syscall.H", "misc.H", "init.H"};
-		int num_known = 5;
-		for (int k = 0; k < num_known; k++) {
-			for (int j = 0; j < o.num_headers; j++) {
-				if (strcmp(o.headers[j], known_headers[k]) ==
+		// Add unique headers in the order they appear
+		char *unique_headers[64] = {0};
+		int unique_count = 0;
+		for (int j = 0; j < o.num_headers; j++) {
+			int is_unique = 1;
+			for (int k = 0; k < unique_count; k++) {
+				if (strcmp(unique_headers[k], o.headers[j]) ==
 				    0) {
-					char include[256];
-					snprintf(include, sizeof(include),
-						 " -include src/%s",
-						 known_headers[k]);
-					strcat(cmd, include);
+					is_unique = 0;
 					break;
 				}
+			}
+			if (is_unique) {
+				unique_headers[unique_count++] = o.headers[j];
+				char include[256];
+				snprintf(include, sizeof(include),
+					 " -include src/%s", o.headers[j]);
+				strncat(cmd, include,
+					sizeof(cmd) - strlen(cmd) - 1);
 			}
 		}
 
@@ -236,8 +254,8 @@ int main(int argc, char *argv[]) {
 		char src[256], obj[256];
 		snprintf(src, sizeof(src), " -c src/%s", o.name);
 		snprintf(obj, sizeof(obj), " -o ./target/objs/%s.o", oname);
-		strcat(cmd, src);
-		strcat(cmd, obj);
+		strncat(cmd, src, sizeof(cmd) - strlen(cmd) - 1);
+		strncat(cmd, obj, sizeof(cmd) - strlen(cmd) - 1);
 
 		printf("%s\n", cmd);
 		if (system(cmd) != 0) {
@@ -264,8 +282,9 @@ int main(int argc, char *argv[]) {
 	snprintf(linkcmd, sizeof(linkcmd), "%s %s -o ./target/lib/lib%s.so", cc,
 		 ldflags, proj.name);
 	for (int i = 0; i < proj.num_objs; i++) {
-		strcat(linkcmd, " ");
-		strcat(linkcmd, obj_paths[i]);
+		strncat(linkcmd, " ", sizeof(linkcmd) - strlen(linkcmd) - 1);
+		strncat(linkcmd, obj_paths[i],
+			sizeof(linkcmd) - strlen(linkcmd) - 1);
 	}
 	printf("%s\n", linkcmd);
 	if (system(linkcmd) != 0) {
@@ -283,7 +302,7 @@ int main(int argc, char *argv[]) {
 	free(proj.name);
 	for (int i = 0; i < proj.num_objs; i++) {
 		free(proj.objs[i].name);
-		free(proj.objs[i].public);
+		if (proj.objs[i].public) free(proj.objs[i].public);
 		for (int j = 0; j < proj.objs[i].num_headers; j++) {
 			free(proj.objs[i].headers[j]);
 		}
