@@ -1,4 +1,6 @@
 #include <ctype.h>
+#include <libgen.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -282,7 +284,7 @@ int main(int argc, char *argv[]) {
 
 	if (strcmp(subcommand, "test") == 0) {
 		cflags =
-		    "-fPIC -Wno-builtin-declaration-mismatch -O1 -DSTATIC= "
+		    "-Wno-builtin-declaration-mismatch -O1 -DSTATIC= "
 		    "-DTEST=1";
 		ldflags = "-nostdlib -ffreestanding -fvisibility=hidden";
 		snprintf(objs_dir, sizeof(objs_dir), "%s/target/test_objs",
@@ -373,6 +375,14 @@ int main(int argc, char *argv[]) {
 	char **public_headers = NULL;
 	int num_public = 0;
 	if (include_test) {
+		// Get binary directory
+		char exe_path[PATH_MAX];
+		readlink("/proc/self/exe", exe_path, PATH_MAX);
+		char *exe_dir = dirname(exe_path);
+		char test_h_path[1024];
+		snprintf(test_h_path, sizeof(test_h_path),
+			 "%s/../resources/test_main.H", exe_dir);
+
 		public_headers = malloc(proj.num_objs * sizeof(char *));  // max
 		for (int i = 0; i < proj.num_objs; i++) {
 			if (proj.objs[i].public) {
@@ -425,6 +435,12 @@ int main(int argc, char *argv[]) {
 						sizeof(cmd) - strlen(cmd) - 1);
 				}
 			}
+
+			char test_include[1024];
+			snprintf(test_include, sizeof(test_include),
+				 " -include %s", test_h_path);
+			strncat(cmd, test_include,
+				sizeof(cmd) - strlen(cmd) - 1);
 
 			char src[1024], obj[1024];
 			snprintf(src, sizeof(src), " -c %s", test_src_path);
