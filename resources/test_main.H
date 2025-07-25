@@ -107,10 +107,10 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 	char buf[128];
 	double ms;
 
-	reset_allocated_bytes();
 #ifndef COVERAGE
 	call_constructors();
 #endif
+	reset_allocated_bytes();
 
 	environ = envp;
 	init_environ();

@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
 	if (strcmp(subcommand, "test") == 0) {
 		cflags =
 		    "-Wno-return-type -Wno-builtin-declaration-mismatch -O1 "
-		    "-DSTATIC= -DTEST=1";
+		    "-DSTATIC= -DTEST=1 -DMEMSAN=1";
 		ldflags = "-nostdlib -ffreestanding -fvisibility=hidden";
 		snprintf(objs_dir, sizeof(objs_dir), "%s/target/test_objs",
 			 root_dir);
