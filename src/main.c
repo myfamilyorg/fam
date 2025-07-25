@@ -42,6 +42,49 @@ static int strcmp_func(const void *a, const void *b) {
 	return strcmp(*(const char **)a, *(const char **)b);
 }
 
+int need_compile(const char *obj_path, const char *src_path, char **headers,
+		 int num_headers) {
+	struct stat obj_stat;
+	if (stat(obj_path, &obj_stat) != 0) return 1;  // no obj, compile
+	time_t obj_mtime = obj_stat.st_mtime;
+
+	struct stat src_stat;
+	if (stat(src_path, &src_stat) != 0) {
+		fprintf(stderr, "Missing source file: %s\n", src_path);
+		return 1;
+	}
+	if (src_stat.st_mtime > obj_mtime) return 1;
+
+	for (int j = 0; j < num_headers; j++) {
+		char header_path[256];
+		snprintf(header_path, sizeof(header_path), "src/%s",
+			 headers[j]);
+		struct stat h_stat;
+		if (stat(header_path, &h_stat) != 0) {
+			fprintf(stderr, "Missing header file: %s\n",
+				header_path);
+			return 1;
+		}
+		if (h_stat.st_mtime > obj_mtime) return 1;
+	}
+
+	return 0;
+}
+
+int need_link(const char *lib_path, char **obj_paths, int num_objs) {
+	struct stat lib_stat;
+	if (stat(lib_path, &lib_stat) != 0) return 1;
+	time_t lib_mtime = lib_stat.st_mtime;
+
+	for (int i = 0; i < num_objs; i++) {
+		struct stat o_stat;
+		if (stat(obj_paths[i], &o_stat) != 0) return 1;
+		if (o_stat.st_mtime > lib_mtime) return 1;
+	}
+
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s <toml_file>\n", argv[0]);
@@ -215,15 +258,31 @@ int main(int argc, char *argv[]) {
 	const char *ldflags =
 	    "-shared -nostdlib -ffreestanding -fvisibility=hidden";
 
-	system("rm -rf ./target/objs/* ./target/lib/*");
 	system("mkdir -p ./target/objs ./target/lib");
 
+	char **obj_paths = malloc(proj.num_objs * sizeof(char *));
 	for (int i = 0; i < proj.num_objs; i++) {
 		struct Obj o = proj.objs[i];
+		char oname[256];
+		strcpy(oname, o.name);
+		char *dot = strrchr(oname, '.');
+		if (dot && strcmp(dot, ".c") == 0) {
+			*dot = 0;
+		}
+		obj_paths[i] = malloc(256);
+		snprintf(obj_paths[i], 256, "./target/objs/%s.o", oname);
+
+		char src_path[256];
+		snprintf(src_path, sizeof(src_path), "src/%s", o.name);
+
+		if (!need_compile(obj_paths[i], src_path, o.headers,
+				  o.num_headers)) {
+			continue;
+		}
+
 		char cmd[8192] = {0};
 		snprintf(cmd, sizeof(cmd), "%s %s", cc, cflags);
 
-		// Add unique headers in the order they appear
 		char *unique_headers[64] = {0};
 		int unique_count = 0;
 		for (int j = 0; j < o.num_headers; j++) {
@@ -245,12 +304,6 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		char oname[256];
-		strcpy(oname, o.name);
-		char *dot = strrchr(oname, '.');
-		if (dot && strcmp(dot, ".c") == 0) {
-			*dot = 0;
-		}
 		char src[256], obj[256];
 		snprintf(src, sizeof(src), " -c src/%s", o.name);
 		snprintf(obj, sizeof(obj), " -o ./target/objs/%s.o", oname);
@@ -264,32 +317,27 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	// Linking with sorted obj files
-	char **obj_paths = malloc(proj.num_objs * sizeof(char *));
-	for (int i = 0; i < proj.num_objs; i++) {
-		char oname[256];
-		strcpy(oname, proj.objs[i].name);
-		char *dot = strrchr(oname, '.');
-		if (dot && strcmp(dot, ".c") == 0) {
-			*dot = 0;
-		}
-		obj_paths[i] = malloc(256);
-		snprintf(obj_paths[i], 256, "./target/objs/%s.o", oname);
-	}
-	qsort(obj_paths, proj.num_objs, sizeof(char *), strcmp_func);
+	char lib_path[256];
+	snprintf(lib_path, sizeof(lib_path), "./target/lib/lib%s.so",
+		 proj.name);
 
-	char linkcmd[4096] = {0};
-	snprintf(linkcmd, sizeof(linkcmd), "%s %s -o ./target/lib/lib%s.so", cc,
-		 ldflags, proj.name);
-	for (int i = 0; i < proj.num_objs; i++) {
-		strncat(linkcmd, " ", sizeof(linkcmd) - strlen(linkcmd) - 1);
-		strncat(linkcmd, obj_paths[i],
-			sizeof(linkcmd) - strlen(linkcmd) - 1);
-	}
-	printf("%s\n", linkcmd);
-	if (system(linkcmd) != 0) {
-		fprintf(stderr, "Linking failed\n");
-		return 1;
+	if (need_link(lib_path, obj_paths, proj.num_objs)) {
+		qsort(obj_paths, proj.num_objs, sizeof(char *), strcmp_func);
+
+		char linkcmd[4096] = {0};
+		snprintf(linkcmd, sizeof(linkcmd), "%s %s -o %s", cc, ldflags,
+			 lib_path);
+		for (int i = 0; i < proj.num_objs; i++) {
+			strncat(linkcmd, " ",
+				sizeof(linkcmd) - strlen(linkcmd) - 1);
+			strncat(linkcmd, obj_paths[i],
+				sizeof(linkcmd) - strlen(linkcmd) - 1);
+		}
+		printf("%s\n", linkcmd);
+		if (system(linkcmd) != 0) {
+			fprintf(stderr, "Linking failed\n");
+			return 1;
+		}
 	}
 
 	// Free obj_paths
