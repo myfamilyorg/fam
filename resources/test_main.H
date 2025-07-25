@@ -1,5 +1,5 @@
-#ifndef _TEST_H
-#define _TEST_H
+#ifndef _TEST_MAIN_H
+#define _TEST_MAIN_H
 
 int main(int argc, char *argv[], char *envp[]);
 
@@ -21,6 +21,7 @@ __asm__(
 
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused)),
 	 char **envp) {
-	return 4;
+	write(2, "tests run\n", 10);
+	return 0;
 }
-#endif /* _TEST_H */
+#endif /* _TEST_MAIN_H */

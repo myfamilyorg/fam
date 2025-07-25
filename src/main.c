@@ -284,8 +284,7 @@ int main(int argc, char *argv[]) {
 
 	if (strcmp(subcommand, "test") == 0) {
 		cflags =
-		    "-Wno-builtin-declaration-mismatch -O1 -DSTATIC= "
-		    "-DTEST=1";
+		    "-Wno-builtin-declaration-mismatch -O1 -DSTATIC= -DTEST=1";
 		ldflags = "-nostdlib -ffreestanding -fvisibility=hidden";
 		snprintf(objs_dir, sizeof(objs_dir), "%s/target/test_objs",
 			 root_dir);
@@ -381,6 +380,9 @@ int main(int argc, char *argv[]) {
 		char *exe_dir = dirname(exe_path);
 		char test_h_path[1024];
 		snprintf(test_h_path, sizeof(test_h_path),
+			 "%s/../resources/test.H", exe_dir);
+		char test_main_h_path[1024];
+		snprintf(test_main_h_path, sizeof(test_main_h_path),
 			 "%s/../resources/test_main.H", exe_dir);
 
 		public_headers = malloc(proj.num_objs * sizeof(char *));  // max
@@ -408,8 +410,44 @@ int main(int argc, char *argv[]) {
 		snprintf(test_src_path, sizeof(test_src_path), "%s/src/test.c",
 			 root_dir);
 
-		if (need_compile(obj_paths[proj.num_objs], test_src_path,
-				 public_headers, num_public, root_dir)) {
+		int needs =
+		    need_compile(obj_paths[proj.num_objs], test_src_path,
+				 public_headers, num_public, root_dir);
+
+		struct stat obj_stat;
+		if (stat(obj_paths[proj.num_objs], &obj_stat) == 0) {
+			time_t obj_mtime = obj_stat.st_mtime;
+
+			struct stat res_stat;
+			if (stat(test_h_path, &res_stat) != 0) {
+				fprintf(stderr, "Missing resource header: %s\n",
+					test_h_path);
+				return 1;
+			}
+			if (res_stat.st_mtime > obj_mtime) needs = 1;
+
+			if (stat(test_main_h_path, &res_stat) != 0) {
+				fprintf(stderr, "Missing resource header: %s\n",
+					test_main_h_path);
+				return 1;
+			}
+			if (res_stat.st_mtime > obj_mtime) needs = 1;
+		} else {
+			// Check if resources exist
+			struct stat res_stat;
+			if (stat(test_h_path, &res_stat) != 0) {
+				fprintf(stderr, "Missing resource header: %s\n",
+					test_h_path);
+				return 1;
+			}
+			if (stat(test_main_h_path, &res_stat) != 0) {
+				fprintf(stderr, "Missing resource header: %s\n",
+					test_main_h_path);
+				return 1;
+			}
+		}
+
+		if (needs) {
 			char cmd[8192] = {0};
 			snprintf(cmd, sizeof(cmd), "%s %s", cc, cflags);
 
@@ -440,6 +478,12 @@ int main(int argc, char *argv[]) {
 			snprintf(test_include, sizeof(test_include),
 				 " -include %s", test_h_path);
 			strncat(cmd, test_include,
+				sizeof(cmd) - strlen(cmd) - 1);
+
+			char test_main_include[1024];
+			snprintf(test_main_include, sizeof(test_main_include),
+				 " -include %s", test_main_h_path);
+			strncat(cmd, test_main_include,
 				sizeof(cmd) - strlen(cmd) - 1);
 
 			char src[1024], obj[1024];
@@ -473,6 +517,17 @@ int main(int argc, char *argv[]) {
 		printf("%s\n", linkcmd);
 		if (system(linkcmd) != 0) {
 			fprintf(stderr, "Linking failed\n");
+			return 1;
+		}
+	}
+
+	if (strcmp(subcommand, "test") == 0) {
+		char run_cmd[1024];
+		snprintf(run_cmd, sizeof(run_cmd), "%s", bin_path);
+		int ret = system(run_cmd);
+		if (ret != 0) {
+			fprintf(stderr, "Test execution failed with code %d\n",
+				ret);
 			return 1;
 		}
 	}
