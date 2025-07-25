@@ -71,27 +71,42 @@ int need_compile(const char *obj_path, const char *src_path, char **headers,
 	return 0;
 }
 
-int need_link(const char *lib_path, char **obj_paths, int num_objs) {
-	struct stat lib_stat;
-	if (stat(lib_path, &lib_stat) != 0) return 1;
-	time_t lib_mtime = lib_stat.st_mtime;
+int need_link(const char *bin_path, char **obj_paths, int num_objs) {
+	struct stat bin_stat;
+	if (stat(bin_path, &bin_stat) != 0) return 1;
+	time_t bin_mtime = bin_stat.st_mtime;
 
 	for (int i = 0; i < num_objs; i++) {
 		struct stat o_stat;
 		if (stat(obj_paths[i], &o_stat) != 0) return 1;
-		if (o_stat.st_mtime > lib_mtime) return 1;
+		if (o_stat.st_mtime > bin_mtime) return 1;
 	}
 
 	return 0;
 }
 
 int main(int argc, char *argv[]) {
+	char *subcommand = "build";
 	char *root_dir = ".";
-	if (argc == 3 && strcmp(argv[1], "-d") == 0) {
-		root_dir = argv[2];
-	} else if (argc != 1) {
-		fprintf(stderr, "Usage: %s [-d <directory>]\n", argv[0]);
-		return 1;
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-d") == 0) {
+			if (++i < argc) {
+				root_dir = argv[i];
+			} else {
+				fprintf(stderr, "Missing argument for -d\n");
+				return 1;
+			}
+		} else {
+			subcommand = argv[i];
+		}
+	}
+
+	if (strcmp(subcommand, "clean") == 0) {
+		char clean_cmd[1024];
+		snprintf(clean_cmd, sizeof(clean_cmd), "rm -rf %s/target",
+			 root_dir);
+		system(clean_cmd);
+		return 0;
 	}
 
 	char toml_path[1024];
@@ -258,18 +273,45 @@ int main(int argc, char *argv[]) {
 	fclose(fp);
 
 	const char *cc = "gcc";
-	const char *cflags =
-	    "-fPIC -Wno-builtin-declaration-mismatch -fvisibility=hidden "
-	    "-DSTATIC=static";
-	const char *ldflags =
-	    "-shared -nostdlib -ffreestanding -fvisibility=hidden";
+	const char *cflags;
+	const char *ldflags;
+	char objs_dir[1024];
+	char out_dir[1024];
+	char bin_path[1024];
+	int include_test = 0;
+
+	if (strcmp(subcommand, "test") == 0) {
+		cflags =
+		    "-fPIC -Wno-builtin-declaration-mismatch -O1 -DSTATIC= "
+		    "-DTEST=1";
+		ldflags = "-nostdlib -ffreestanding -fvisibility=hidden";
+		snprintf(objs_dir, sizeof(objs_dir), "%s/target/test_objs",
+			 root_dir);
+		snprintf(out_dir, sizeof(out_dir), "%s/target/bin", root_dir);
+		snprintf(bin_path, sizeof(bin_path), "%s/test", out_dir);
+		include_test = 1;
+	} else {
+		cflags =
+		    "-fPIC -Wno-builtin-declaration-mismatch "
+		    "-fvisibility=hidden -DSTATIC=static";
+		ldflags =
+		    "-shared -nostdlib -ffreestanding -fvisibility=hidden";
+		snprintf(objs_dir, sizeof(objs_dir), "%s/target/objs",
+			 root_dir);
+		snprintf(out_dir, sizeof(out_dir), "%s/target/lib", root_dir);
+		snprintf(bin_path, sizeof(bin_path), "%s/lib%s.so", out_dir,
+			 proj.name);
+		include_test = 0;
+	}
 
 	char mkdir_cmd[1024];
-	snprintf(mkdir_cmd, sizeof(mkdir_cmd),
-		 "mkdir -p %s/target/objs %s/target/lib", root_dir, root_dir);
+	snprintf(mkdir_cmd, sizeof(mkdir_cmd), "mkdir -p %s %s", objs_dir,
+		 out_dir);
 	system(mkdir_cmd);
 
-	char **obj_paths = malloc(proj.num_objs * sizeof(char *));
+	int total_objs = proj.num_objs + include_test;
+	char **obj_paths = malloc(total_objs * sizeof(char *));
+
 	for (int i = 0; i < proj.num_objs; i++) {
 		struct Obj o = proj.objs[i];
 		char oname[256];
@@ -279,8 +321,7 @@ int main(int argc, char *argv[]) {
 			*dot = 0;
 		}
 		obj_paths[i] = malloc(1024);
-		snprintf(obj_paths[i], 1024, "%s/target/objs/%s.o", root_dir,
-			 oname);
+		snprintf(obj_paths[i], 1024, "%s/%s.o", objs_dir, oname);
 
 		char src_path[1024];
 		snprintf(src_path, sizeof(src_path), "%s/src/%s", root_dir,
@@ -318,8 +359,7 @@ int main(int argc, char *argv[]) {
 
 		char src[1024], obj[1024];
 		snprintf(src, sizeof(src), " -c %s/src/%s", root_dir, o.name);
-		snprintf(obj, sizeof(obj), " -o %s/target/objs/%s.o", root_dir,
-			 oname);
+		snprintf(obj, sizeof(obj), " -o %s", obj_paths[i]);
 		strncat(cmd, src, sizeof(cmd) - strlen(cmd) - 1);
 		strncat(cmd, obj, sizeof(cmd) - strlen(cmd) - 1);
 
@@ -330,17 +370,85 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	char lib_path[1024];
-	snprintf(lib_path, sizeof(lib_path), "%s/target/lib/lib%s.so", root_dir,
-		 proj.name);
+	char **public_headers = NULL;
+	int num_public = 0;
+	if (include_test) {
+		public_headers = malloc(proj.num_objs * sizeof(char *));  // max
+		for (int i = 0; i < proj.num_objs; i++) {
+			if (proj.objs[i].public) {
+				int is_unique = 1;
+				for (int k = 0; k < num_public; k++) {
+					if (strcmp(public_headers[k],
+						   proj.objs[i].public) == 0) {
+						is_unique = 0;
+						break;
+					}
+				}
+				if (is_unique) {
+					public_headers[num_public++] =
+					    strdup(proj.objs[i].public);
+				}
+			}
+		}
 
-	if (need_link(lib_path, obj_paths, proj.num_objs)) {
-		qsort(obj_paths, proj.num_objs, sizeof(char *), strcmp_func);
+		obj_paths[proj.num_objs] = malloc(1024);
+		snprintf(obj_paths[proj.num_objs], 1024, "%s/test.o", objs_dir);
+
+		char test_src_path[1024];
+		snprintf(test_src_path, sizeof(test_src_path), "%s/src/test.c",
+			 root_dir);
+
+		if (need_compile(obj_paths[proj.num_objs], test_src_path,
+				 public_headers, num_public, root_dir)) {
+			char cmd[8192] = {0};
+			snprintf(cmd, sizeof(cmd), "%s %s", cc, cflags);
+
+			char *unique_headers[64] = {0};
+			int unique_count = 0;
+			for (int j = 0; j < num_public; j++) {
+				int is_unique = 1;
+				for (int k = 0; k < unique_count; k++) {
+					if (strcmp(unique_headers[k],
+						   public_headers[j]) == 0) {
+						is_unique = 0;
+						break;
+					}
+				}
+				if (is_unique) {
+					unique_headers[unique_count++] =
+					    public_headers[j];
+					char include[1024];
+					snprintf(include, sizeof(include),
+						 " -include %s/src/%s",
+						 root_dir, public_headers[j]);
+					strncat(cmd, include,
+						sizeof(cmd) - strlen(cmd) - 1);
+				}
+			}
+
+			char src[1024], obj[1024];
+			snprintf(src, sizeof(src), " -c %s", test_src_path);
+			snprintf(obj, sizeof(obj), " -o %s",
+				 obj_paths[proj.num_objs]);
+			strncat(cmd, src, sizeof(cmd) - strlen(cmd) - 1);
+			strncat(cmd, obj, sizeof(cmd) - strlen(cmd) - 1);
+
+			printf("%s\n", cmd);
+			if (system(cmd) != 0) {
+				fprintf(stderr,
+					"Compilation failed for test.c\n");
+				return 1;
+			}
+		}
+	}
+
+	if (need_link(bin_path, obj_paths, total_objs)) {
+		qsort(obj_paths, total_objs, sizeof(char *), strcmp_func);
 
 		char linkcmd[8192] = {0};
 		snprintf(linkcmd, sizeof(linkcmd), "%s %s -o %s", cc, ldflags,
-			 lib_path);
-		for (int i = 0; i < proj.num_objs; i++) {
+			 bin_path);
+		for (int i = 0; i < total_objs; i++) {
 			strncat(linkcmd, " ",
 				sizeof(linkcmd) - strlen(linkcmd) - 1);
 			strncat(linkcmd, obj_paths[i],
@@ -353,8 +461,15 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	if (include_test) {
+		for (int j = 0; j < num_public; j++) {
+			free(public_headers[j]);
+		}
+		free(public_headers);
+	}
+
 	// Free obj_paths
-	for (int i = 0; i < proj.num_objs; i++) {
+	for (int i = 0; i < total_objs; i++) {
 		free(obj_paths[i]);
 	}
 	free(obj_paths);
